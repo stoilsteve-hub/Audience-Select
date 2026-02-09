@@ -275,8 +275,39 @@ def render_tool():
             if not valid:
                 st.error(f"❌ Missing required columns: {missing}")
             else:
-                if missing: st.toast("⚠️ Auto-mapped fuzzy column names.", icon="⚠️")
+                # -------------------------------------------------------------
+                # COUNTRY FILTER
+                # -------------------------------------------------------------
+                st.sidebar.divider()
+                st.sidebar.header("🌍 Location Filter")
                 
+                # Get unique countries
+                # Note: df is guaranteed valid here
+                if 'location_country' in df.columns:
+                    all_countries = sorted(df['location_country'].dropna().unique().tolist())
+                    
+                    if not all_countries:
+                        st.sidebar.warning("No country data found in CSV.")
+                    else:
+                        selected_countries = st.sidebar.multiselect(
+                            "Select Countries to Keep",
+                            options=all_countries,
+                            help="Leave empty to keep EVERYONE."
+                        )
+                        
+                        # FILTER LOGIC
+                        if selected_countries:
+                            rows_before = len(df)
+                            df = df[df['location_country'].isin(selected_countries)]
+                            rows_after = len(df)
+                            st.sidebar.caption(f"Filtered: {rows_before} → {rows_after} candidates")
+                            
+                            if df.empty:
+                                st.error("⚠️ You filtered out ALL candidates! Please select more countries.")
+                                st.stop()
+                else:
+                    st.sidebar.warning("Column 'location_country' missing. Cannot filter.")
+
                 # Big Run Button
                 if st.button("🚀 Rank My Audience", type="primary"):
                     

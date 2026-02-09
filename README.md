@@ -71,6 +71,28 @@ Now, you tell the tool who you want to target. The tool converts that Raw Score 
 -   `--verbose` / `-v`: Debug logging.
 -   `--quiet` / `-q`: Minimal output.
 
+## Interactive Commands Reference
+
+When running the tool without CLI flags, you will use the **Interactive Wizard**. Here is a list of all prompts and valid inputs:
+
+| Step | Prompt / Context | Valid Inputs | Description |
+| :--- | :--- | :--- | :--- |
+| **1. File Input** | `Enter input CSV path:` | File path (e.g. `data.csv`) | The path to your source file. Drag-and-drop works in most terminals. |
+| **2. Column Mapping** | `Use 'X' for 'Y'? [y/n]:` | `y` or `n` | **y**: Accept the suggested column name.<br>**n**: Reject it. |
+| **2. Column Mapping** | `Enter column name for 'Y':` | Column name | Manually type the correct header name from your CSV. |
+| **3. Weights** | `Seniority (default 40):` | Number (0-100) | Importance of seniority. Press `Enter` to accept default |
+| **3. Weights** | `Keywords (default 20):` | Number (0-100) | Importance of keyword matches. |
+| **3. Weights** | `Connections...` etc. | Number (0-100) | Weights for other factors. |
+| **4. Seniority Type** | `Choose 1 or 2:` | `1` or `2` | **1 (Single)**: Use one strategy.<br>**2 (Multi)**: Combine strategies. |
+| **5. Single Mode** | `Choice:` | `1` or `S` | **Prefer Senior**: Higher rank = better. |
+| | | `2` or `J` | **Prefer Junior**: Entry level = better. |
+| | | `3` or `M` | **Prefer Mid**: Managers/Leads = better. |
+| | | `4` or `B` | **Balanced**: Seniority ignored (flat score). |
+| | | `5` or `TR` | **Target Range**: Bonus for specific score range. |
+| **5. Multi Mode** | `Codes:` | `S, J, M, B, TR` | Comma-separated list (e.g., `J,M` for Junior + Mid). |
+| **5. Multi Mode** | `Choice:` | `1`, `2`, `3` | **1**: Average<br>**2**: Max<br>**3**: Weighted |
+| **6. Export** | `1) CSV, 2) Excel, 3) Both:` | `1`, `2`, `3` | Choose your output format. |
+
 ## Input CSV Format
 
 Required columns (all lowercase):

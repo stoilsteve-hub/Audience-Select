@@ -1,88 +1,74 @@
-# Audience Prioritization Tool
+# Audience Prioritization Tool (v3.0)
 
 A console-based Python tool to rank and prioritize contacts from CSV exports based on seniority, network size, company size, and keyword relevance.
 
 ## Features
 
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
--   **Dynamic Seniority Engine (v2.0)**:
+-   **Dynamic Seniority Engine**:
     -   Target specific levels (e.g. Juniors, Mid-Level, Seniors).
-    -   Combine strategies with Multi-Mode support.
-    -   Two-stage process: Classification (Stage A) -> Transformation (Stage B).
--   **Keyword Relevance Engine**: Scores candidates based on configurable "Good" and "Bad" phrases.
--   **Fuzzy Column Mapping**: Automatically detects and suggests mappings for missing or misspelled column headers.
--   **Progress Bars & Logging (v2.1)**:
-    -   Visual feedback for long-running operations (requires `tqdm`).
-    -   Detailed execution logs in `audience_ranker.log`.
-    -   CLI flags for verbosity (`--verbose`, `--quiet`).
--   **Multilingual Support**: Recognizes seniority terms in English, Spanish, French, Polish, etc.
--   **Customizable Weights**: User can adjust importance of Seniority, Connections, Followers, Company Size, and Keywords per run.
--   **Export**: Output ranked lists to CSV or Excel.
+    -   Combine strategies with Multi-Mode support (e.g. Junior + Mid).
+    -   Two-stage process: Raw Classification -> Dynamic Transformation.
+-   **Phrase-Aware Keyword Engine**:
+    -   Matches phrases (e.g. "Process Development") and acronyms.
+    -   Configurable Boost (Good) and Penalty (Bad) points.
+    -   Option to filter out rows with Bad words entirely.
+-   **Strict Column Validation**: Automatically detects and maps required columns (handles `_one` -> `_1` automatically).
+-   **CLI Support**: Full automation via command-line flags.
+-   **Logging**: detailed execution logs in `audience_ranker.log`.
 
 ## Prerequisites
 
 -   Python 3.10+
--   Dependencies: `pandas`, `openpyxl`, `numpy`, `tqdm` (optional but recommended)
-
-## Installation
-
-1.  Clone or download this repository.
-2.  Install dependencies:
-    ```bash
-    pip install pandas openpyxl numpy tqdm
-    ```
+-   Dependencies: `pandas`, `openpyxl`, `numpy`, `tqdm` (optional)
 
 ## Usage
 
-1.  **Run the script**:
+1.  **Interactive Mode**:
     ```bash
     python3 rank_sample.py
     ```
-    *Optional: Pass CSV path as argument:*
+
+2.  **CLI Automation**:
     ```bash
-    python3 rank_sample.py my_data.csv
+    python3 rank_sample.py input.csv --seniority-mode-type multi --seniority-modes J,M --combine average --export-csv --quiet
     ```
 
-2.  **CLI Flags**:
-    -   `--verbose` (`-v`): Enable debug logging (see `audience_ranker.log` and console).
-    -   `--quiet` (`-q`): Suppress operational logs, showing only prompts/results.
-
-3.  **Follow the prompts**:
-    -   **Input**: Path to your CSV file. If columns mismatch, the tool will verify mappings with you.
-    -   **Filters**: Filter by Country, Company Size, Management Level, or Keywords (press Enter to skip).
-    -   **Weights**: Set relative importance (0-100) for scoring factors.
-    -   **Keyword Config**: Choose `A` to Penalize bad words or `B` to Filter them out. Set boost/penalty amounts.
-    -   **Seniority Strategy**: Choose your target audience (Seniors, Juniors, Mid-Level, etc.).
-    -   **Export**: Choose CSV or Excel format.
-
-## Configuration
-
--   **`seniority_config_example.json`**: (Optional) Rename to `seniority_config.json` to override default seniority mappings.
+### CLI Flags
+-   `--weights`: Comma-separated weights (Seniority, Keyword, Connections, Followers, CompanySize). Example: `40,20,10,10,20`.
+-   `--seniority-mode-type`: `single` or `multi`.
+-   `--seniority-modes`: Codes: `S` (Senior), `J` (Junior), `M` (Mid), `B` (Balanced), `TR` (Target Range).
+-   `--combine`: `average`, `max`, or `weighted`.
+-   `--bad-words-action`: `A` (Penalize), `B` (Filter Out).
+-   `--verbose` / `-v`: Debug logging.
+-   `--quiet` / `-q`: Minimal output.
 
 ## Input CSV Format
 
-The tool expects specific column names (all lowercase), including:
+Required columns (all lowercase):
 -   `id`
 -   `full_name`
--   `management_level_1`
+-   `linkedin_url`
 -   `active_experience_title`
+-   `management_level_1`
+-   `company_id_1`
+-   `company_name_1`
 -   `company_size_range_1`
--   `connections_count`
--   `active_experience_description`
+-   `company_categories_and_keywords_1`
+-   `company_industry_1`
+-   `company_employees_count_1`
 -   `department_1`
--   ... (see `rank_sample.py` for full list)
+-   `active_experience_description`
+-   `location_country`
+-   `connections_count`
+-   `followers_count`
 
-*Note: The tool attempts to map columns if headers don't match exactly.*
+## Output Columns
 
-## Output
-
-The output file will be sorted by `final_score` (descending) and include calculated fields:
--   `seniority_tier`
--   `raw_seniority_score`
--   `seniority_component`
--   `keyword_score`
--   `good_match_count`
--   `bad_match_count`
--   `network_score`
--   `company_score`
--   `final_score`
+The output file will be sorted by `final_score` (descending) and include:
+-   `final_score`: The sorting metric.
+-   `seniority_component`: The score used in the formula.
+-   `raw_seniority_score`: Unmodified level score.
+-   `seniority_tier`: Human-readable level.
+-   `keyword_score`: Score based on good/bad matches.
+-   `good_match_count`, `bad_match_count`, `good_matches`

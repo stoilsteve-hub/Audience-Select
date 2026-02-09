@@ -5,7 +5,9 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 ## Features
 
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
--   **Streamlit Web App**: A modern, visual interface for ranking and downloading results.
+-   **Streamlit Web App**:
+    -   **Modern Dashboard**: Visual KPIs, Interactive Charts, and Progress Bars.
+    -   **Integrated Documentation**: A built-in "Reference Manual" with strategy diagrams and guides.
 
 ### 🌟 Dynamic Seniority Engine (Simplified)
 

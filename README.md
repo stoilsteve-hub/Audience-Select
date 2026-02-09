@@ -115,7 +115,12 @@ Required columns (all lowercase):
 
 ## Output Columns
 
-The output file will be sorted by `final_score` (descending) and include:
+The output file (CSV/Excel) will **strictly preserve** the original Input Columns in order, followed by the Ranking Columns.
+
+**1. Input Columns** (Preserved exactly as provided):
+-   `id`, `full_name`, `linkedin_url`, `active_experience_title`, `management_level_1`, ...
+
+**2. Ranking Columns** (Appended):
 -   `ranking_score`: The final score rounded to 2 decimals.
 -   `ranking_reason`: Human-readable explanation of the score.
 -   `final_score`: The raw sorting metric.

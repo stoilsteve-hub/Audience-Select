@@ -107,23 +107,17 @@ REQUIRED_COLUMNS: List[str] = [
     "followers_count",
 ]
 
-EXPORT_COLUMN_ORDER: List[str] = [
-    "id",
-    "full_name",
-    "linkedin_url",
-    "active_experience_title",
-    "management_level_1",
-    "company_id_1",
-    "company_name_1",
-    "company_size_range_1",
-    "company_categories_and_keywords_1",
-    "location_country",
-    "connections_count",
-    "followers_count",
-    "department_1",
-    "active_experience_description",
-    "company_industry_1",
-    "company_employees_count_1",
+RANKING_COLUMNS: List[str] = [
+    "ranking_score",
+    "ranking_reason",
+    "final_score",
+    "seniority_component",
+    "raw_seniority_score",
+    "seniority_tier",
+    "keyword_score",
+    "good_match_count",
+    "bad_match_count",
+    "good_matches"
 ]
 
 KEYWORD_RELEVANCE_COLS: List[str] = [
@@ -682,9 +676,14 @@ def process_file(
     def kw_wrapper(row):
         return k_engine.compute_score(row, kw_config)
 
+    kw_res = None
     if TQDM_AVAILABLE:
-        tqdm.pandas(desc="Keywords")
-        kw_res = df.progress_apply(kw_wrapper, axis=1, result_type='expand')
+        try:
+            tqdm.pandas(desc="Keywords")
+            kw_res = df.progress_apply(kw_wrapper, axis=1, result_type='expand')
+        except Exception as e:
+            logger.warning(f"TQDM progress bar failed ({e}), falling back to standard apply.")
+            kw_res = df.apply(kw_wrapper, axis=1, result_type='expand')
     else:
         kw_res = df.apply(kw_wrapper, axis=1, result_type='expand')
         
@@ -712,9 +711,13 @@ def process_file(
     def sen_raw_wrapper(row):
         return raw_sen_engine.compute_raw(row)
         
+    raw_res = None
     if TQDM_AVAILABLE:
-        tqdm.pandas(desc="Seniority Raw")
-        raw_res = df.progress_apply(sen_raw_wrapper, axis=1, result_type='expand')
+        try:
+            tqdm.pandas(desc="Seniority Raw")
+            raw_res = df.progress_apply(sen_raw_wrapper, axis=1, result_type='expand')
+        except Exception:
+            raw_res = df.apply(sen_raw_wrapper, axis=1, result_type='expand')
     else:
         raw_res = df.apply(sen_raw_wrapper, axis=1, result_type='expand')
         
@@ -806,22 +809,27 @@ def process_file(
     cols_preview = ['full_name', 'active_experience_title', 
                     'raw_seniority_score', 'seniority_component', 
                     'ranking_score', 'ranking_reason']
-    print(df[cols_preview].head(5).to_string(index=False))
+    # Use only columns that exist for preview (some are computed but not in required set)
+    valid_preview = [c for c in cols_preview if c in df.columns]
+    print(df[valid_preview].head(5).to_string(index=False))
 
     # Reorder columns for export
-    # Original ordered + Computed
-    base_cols = [c for c in EXPORT_COLUMN_ORDER if c in df.columns]
-    computed_cols = [
-        'keyword_score', 'good_matches', 'bad_matches',
-        'raw_seniority_score', 'seniority_component', 'seniority_tier',
-        'final_score', 
-        'ranking_score', 'ranking_reason'  # Added
-    ]
-    # Add explainability
-    computed_cols += ['seniority_modes_selected', 'seniority_combine_method']
+    # Strict structure: REQUIRED_COLUMNS + RANKING_COLUMNS
+    # Any intermediate columns computed but not in these lists are excluded from export.
     
-    final_cols = base_cols + computed_cols
-    # Ensure no dupes
+    final_cols = []
+    
+    # 1. Required Inputs (must exist because validation passed)
+    for col in REQUIRED_COLUMNS:
+        if col in df.columns:
+            final_cols.append(col)
+            
+    # 2. Ranking Outputs
+    for col in RANKING_COLUMNS:
+        if col in df.columns:
+            final_cols.append(col)
+            
+    # Ensure no dupes (though lists should be distinct)
     final_cols = list(dict.fromkeys(final_cols))
     
     df_export = df[final_cols]

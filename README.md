@@ -1,4 +1,4 @@
-# Audience Prioritization Tool (v3.0)
+# Audience Prioritization Tool (v3.1)
 
 A console-based Python tool to rank and prioritize contacts from CSV exports based on seniority, network size, company size, and keyword relevance.
 
@@ -13,6 +13,9 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     -   Matches phrases (e.g. "Process Development") and acronyms.
     -   Configurable Boost (Good) and Penalty (Bad) points.
     -   Option to filter out rows with Bad words entirely.
+-   **Explainable AI Ranking**:
+    -   `ranking_score`: Final score rounded for readability.
+    -   `ranking_reason`: Auto-generated sentence explaining *why* a candidate was ranked high (e.g. "Seniority boost: 85 (Junior-target); Keyword relevance: 64...").
 -   **Strict Column Validation**: Automatically detects and maps required columns (handles `_one` -> `_1` automatically).
 -   **CLI Support**: Full automation via command-line flags.
 -   **Logging**: detailed execution logs in `audience_ranker.log`.
@@ -66,7 +69,9 @@ Required columns (all lowercase):
 ## Output Columns
 
 The output file will be sorted by `final_score` (descending) and include:
--   `final_score`: The sorting metric.
+-   `ranking_score`: The final score rounded to 2 decimals.
+-   `ranking_reason`: Human-readable explanation of the score.
+-   `final_score`: The raw sorting metric.
 -   `seniority_component`: The score used in the formula.
 -   `raw_seniority_score`: Unmodified level score.
 -   `seniority_tier`: Human-readable level.

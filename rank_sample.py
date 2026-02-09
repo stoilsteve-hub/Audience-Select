@@ -600,6 +600,54 @@ def get_cli_args():
 # MAIN LOGIC
 # =============================================================================
 
+def build_ranking_reason(row: pd.Series) -> str:
+    """Generates a human-readable explanation for the ranking score."""
+    parts = []
+    
+    # 1. Seniority Explanation
+    sen_val = float(row.get('seniority_component', 0))
+    sen_mode = str(row.get('seniority_mode_type', 'unknown'))
+    sen_sel = str(row.get('seniority_modes_selected', ''))
+    
+    # Clean up display of mode
+    if "prefer_senior" in sen_sel: mode_disp = "Senior-target"
+    elif "prefer_junior" in sen_sel: mode_disp = "Junior-target"
+    elif "prefer_mid" in sen_sel: mode_disp = "Mid-target"
+    elif "target_range" in sen_sel: mode_disp = "Range-target"
+    elif "balanced" in sen_sel: mode_disp = "Balanced"
+    else: mode_disp = sen_mode
+    
+    if sen_val > 50:
+        parts.append(f"Seniority boost: {int(sen_val)} ({mode_disp})")
+    else:
+        parts.append(f"Seniority score: {int(sen_val)} ({mode_disp})")
+        
+    # 2. Keyword Explanation
+    kw_val = float(row.get('keyword_score', 0))
+    good_matches = str(row.get('good_matches', ''))
+    
+    if kw_val > 0:
+        match_list = [m for m in good_matches.split(';') if m]
+        top_matches = ", ".join(match_list[:3])
+        if len(match_list) > 3: top_matches += "..."
+        parts.append(f"Keyword relevance: {int(kw_val)} (matched: {top_matches})")
+    
+    # 3. Network
+    conn_norm = float(row.get('connections_score_norm', 0))
+    foll_norm = float(row.get('followers_score_norm', 0))
+    
+    if conn_norm > 70 or foll_norm > 70:
+        parts.append("High network influence")
+    elif conn_norm > 40:
+        parts.append("Moderate network presence")
+        
+    # 4. Company
+    comp_score = float(row.get('company_size_score', 0))
+    if comp_score > 60:
+        parts.append("Large company profile")
+        
+    return "; ".join(parts) + "."
+
 def process_file(
     file_path: str,
     weights_config: WeightsConfig,
@@ -729,11 +777,21 @@ def process_file(
         (df['company_size_score'] * weights_config.company_size)
     )
     
+    # -----------------------------
+    # 5. Explainability (NEW)
+    # -----------------------------
+    logger.info("Generating ranking explanations...")
+    
+    df['ranking_score'] = df['final_score'].round(2)
+    df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+    
+    print("Ranking explanation columns generated successfully.")
+    
     # Sort
     df = df.sort_values(by="final_score", ascending=False)
     
     # -----------------------------
-    # 5. Diagnostics & Export
+    # 6. Diagnostics & Export
     # -----------------------------
     
     # Basic Diagnostics
@@ -747,7 +805,7 @@ def process_file(
     print("\n--- PREVIEW (Top 5) ---")
     cols_preview = ['full_name', 'active_experience_title', 
                     'raw_seniority_score', 'seniority_component', 
-                    'keyword_score', 'final_score']
+                    'ranking_score', 'ranking_reason']
     print(df[cols_preview].head(5).to_string(index=False))
 
     # Reorder columns for export
@@ -756,7 +814,8 @@ def process_file(
     computed_cols = [
         'keyword_score', 'good_matches', 'bad_matches',
         'raw_seniority_score', 'seniority_component', 'seniority_tier',
-        'final_score'
+        'final_score', 
+        'ranking_score', 'ranking_reason'  # Added
     ]
     # Add explainability
     computed_cols += ['seniority_modes_selected', 'seniority_combine_method']

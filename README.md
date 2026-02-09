@@ -1,4 +1,4 @@
-# Audience Prioritization Tool (v3.1)
+# Audience Prioritization Tool (v3.2)
 
 A console-based Python tool to rank and prioritize contacts from CSV exports based on seniority, network size, company size, and keyword relevance.
 
@@ -7,6 +7,7 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
 -   **Streamlit Web App**:
     -   **Modern Dashboard**: Visual KPIs, Interactive Charts, and Progress Bars.
+    -   **Interactive Country Filter**: Dynamically filter candidates by geography before ranking.
     -   **Integrated Documentation**: A built-in "Reference Manual" with strategy diagrams and guides.
 
 ### 🌟 Dynamic Seniority Engine (Simplified)
@@ -38,9 +39,10 @@ Now, you tell the tool who you want to target. The tool converts that Raw Score 
 ---
 
 -   **Phrase-Aware Keyword Engine**:
-    -   Matches phrases (e.g. "Process Development") and acronyms.
+    -   **Expanded Library**: 50+ technical biotech and strategic phrases (MSAT, CMC, GMP, Bioprocessing, etc.).
+    -   Matches phrases and acronyms with word-boundary precision.
     -   Configurable Boost (Good) and Penalty (Bad) points.
-    -   Option to filter out rows with Bad words entirely.
+    -   Option to filter out irrelevant rows (HR, Sales, Admin) entirely.
 -   **Explainable AI Ranking**:
     -   `ranking_score`: Final score rounded for readability.
     -   `ranking_reason`: Auto-generated sentence explaining *why* a candidate was ranked high (e.g. "Seniority boost: 85 (Junior-target); Keyword relevance: 64...").

@@ -145,7 +145,12 @@ GOOD_WORDS: List[str] = [
 BAD_WORDS: List[str] = [
     "Small molecule", "Consultant", "Statistician", "Data Analyst", "Intern", "Student", 
     "Dossier", "Contractor", "Writer", "Co-op", "Oral",
-    "Sales", "Marketing", "Recruiter", "Finance", "Accounting", "Retail"
+    "Sales", "Marketing", "Recruiter", "Finance", "Accounting", "Retail",
+    "Assistant", "Secretary", "Admin", "Administrative", "Human Resources", "HR", "Payroll",
+    "Legal", "Attorney", "Account Manager", "Business Development", "Customer Support",
+    "Customer Service", "PR", "Public Relations", "Teacher", "Professor", "Lecturer",
+    "PhD Student", "Postdoc", "Warehouse", "Driver", "Courier", "Purchasing",
+    "Help Desk", "Web Developer", "Software Engineer", "Pharmacist", "Nurse", "Physician", "Doctor"
 ]
 
 DEFAULT_BOOST = 8.0

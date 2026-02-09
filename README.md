@@ -5,7 +5,10 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 ## Features
 
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
--   **Rule-Based Seniority Engine**: Calculates seniority tiers (e.g., Senior, VP, C-Suite) using a hybrid of `management_level_1` and title keywords.
+-   **Dynamic Seniority Engine (v2.0)**:
+    -   Target specific levels (e.g. Juniors, Mid-Level, Seniors).
+    -   Combine strategies with Multi-Mode support.
+    -   Two-stage process: Classification (Stage A) -> Transformation (Stage B).
 -   **Keyword Relevance Engine**: Scores candidates based on "Good" (e.g., MS&T, CMC) and "Bad" (e.g., Intern, Student) phrases found in their profile.
 -   **Fuzzy Column Mapping**: Automatically detects and suggests mappings for missing or misspelled column headers (e.g. maps `Level` -> `management_level_1`).
 -   **Progress Bars**: Visual feedback for long-running operations on large datasets (requires `tqdm`).
@@ -39,6 +42,7 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     -   **Filters**: Filter by Country, Company Size, Management Level, or Keywords (press Enter to skip).
     -   **Weights**: Set relative importance (0-100) for scoring factors.
     -   **Keyword Config**: Choose `A` to Penalize bad words or `B` to Filter them out. Set boost/penalty amounts.
+    -   **Seniority Strategy**: Choose your target audience (Seniors, Juniors, Mid-Level, etc.).
     -   **Export**: Choose CSV or Excel format.
 
 ## Configuration
@@ -64,7 +68,8 @@ The tool expects specific column names (all lowercase), including:
 
 The output file will be sorted by `final_score` (descending) and include calculated fields:
 -   `seniority_tier`
--   `seniority_score`
+-   `raw_seniority_score`
+-   `seniority_component`
 -   `keyword_score`
 -   `good_match_count`
 -   `bad_match_count`

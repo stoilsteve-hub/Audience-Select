@@ -2,7 +2,7 @@
 """
 Audience Prioritization Tool
 ----------------------------
-A console-based tool to rank contacts from CSV based on Seniority, Network, Company Size, and Keywords.
+A console-based tool (with Streamlit support) to rank contacts from CSV based on Seniority, Network, Company Size, and Keywords.
 
 Requirements:
     Python 3.10+
@@ -10,6 +10,7 @@ Requirements:
 
 Usage:
     python rank_sample.py [input_file] [options]
+    streamlit run app.py
 """
 
 import sys
@@ -642,27 +643,18 @@ def build_ranking_reason(row: pd.Series) -> str:
         
     return "; ".join(parts) + "."
 
-def process_file(
-    file_path: str,
+def run_ranking(
+    df: pd.DataFrame,
     weights_config: WeightsConfig,
     sen_pref: SeniorityPreference,
-    kw_config: KeywordConfig,
-    export_opts: Dict[str, bool]
-) -> None:
+    kw_config: KeywordConfig
+) -> pd.DataFrame:
+    """
+    Pure ranking logic. Accepts a dataframe and config objects,
+    returns a ranked dataframe with new columns.
+    Does NOT perform I/O or exports.
+    """
     
-    logger.info(f"Loading {file_path}...")
-    try:
-        df = pd.read_csv(file_path)
-    except Exception as e:
-        logger.error(f"Failed to read CSV: {e}")
-        return
-
-    # Validation
-    valid, missing, df = validate_columns(df)
-    if not valid:
-        logger.error(f"Critical Error: Missing columns {missing}")
-        return
-
     # Engines
     k_engine = KeywordEngine(GOOD_WORDS, BAD_WORDS)
     raw_sen_engine = SeniorityRawEngine("seniority_config.json")
@@ -699,8 +691,8 @@ def process_file(
         df = df[df['bad_match_count'] == 0]
         logger.info(f"Filtered {initial_len - len(df)} rows due to bad words.")
         if df.empty:
-            logger.warning("All rows filtered output.")
-            return
+            logger.warning("All rows filtered output due to Keywords.")
+            return df # Return empty to handle upstream
 
     # -----------------------------
     # 2. Seniority Scoring
@@ -781,7 +773,7 @@ def process_file(
     )
     
     # -----------------------------
-    # 5. Explainability (NEW)
+    # 5. Explainability
     # -----------------------------
     logger.info("Generating ranking explanations...")
     
@@ -793,8 +785,38 @@ def process_file(
     # Sort
     df = df.sort_values(by="final_score", ascending=False)
     
+    return df
+
+def process_file(
+    file_path: str,
+    weights_config: WeightsConfig,
+    sen_pref: SeniorityPreference,
+    kw_config: KeywordConfig,
+    export_opts: Dict[str, bool]
+) -> None:
+    
+    logger.info(f"Loading {file_path}...")
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        logger.error(f"Failed to read CSV: {e}")
+        return
+
+    # Validation
+    valid, missing, df = validate_columns(df)
+    if not valid:
+        logger.error(f"Critical Error: Missing columns {missing}")
+        return
+
+    # RUN RANKING
+    df = run_ranking(df, weights_config, sen_pref, kw_config)
+    
+    if df.empty:
+        logger.warning("Dataframe is empty after ranking (possible filtering).")
+        return
+
     # -----------------------------
-    # 6. Diagnostics & Export
+    # Diagnostics & Export
     # -----------------------------
     
     # Basic Diagnostics
@@ -809,17 +831,14 @@ def process_file(
     cols_preview = ['full_name', 'active_experience_title', 
                     'raw_seniority_score', 'seniority_component', 
                     'ranking_score', 'ranking_reason']
-    # Use only columns that exist for preview (some are computed but not in required set)
+    # Use only columns that exist for preview
     valid_preview = [c for c in cols_preview if c in df.columns]
     print(df[valid_preview].head(5).to_string(index=False))
 
     # Reorder columns for export
-    # Strict structure: REQUIRED_COLUMNS + RANKING_COLUMNS
-    # Any intermediate columns computed but not in these lists are excluded from export.
-    
     final_cols = []
     
-    # 1. Required Inputs (must exist because validation passed)
+    # 1. Required Inputs
     for col in REQUIRED_COLUMNS:
         if col in df.columns:
             final_cols.append(col)
@@ -829,7 +848,6 @@ def process_file(
         if col in df.columns:
             final_cols.append(col)
             
-    # Ensure no dupes (though lists should be distinct)
     final_cols = list(dict.fromkeys(final_cols))
     
     df_export = df[final_cols]

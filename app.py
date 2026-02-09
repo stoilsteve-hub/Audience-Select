@@ -1,0 +1,397 @@
+import streamlit as st
+import pandas as pd
+import io
+import time
+import altair as alt
+
+# Import logic from the refactored script
+from rank_sample import (
+    run_ranking,
+    validate_columns,
+    WeightsConfig,
+    KeywordConfig,
+    SeniorityPreference,
+    SeniorityMode,
+    SeniorityModeType,
+    REQUIRED_COLUMNS,
+    RANKING_COLUMNS
+)
+
+# Page Conf
+st.set_page_config(
+    page_title="Audience Ranker Pro", 
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# CSS Styling for Modern Look
+st.markdown("""
+<style>
+    .kpi-card {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 5px;
+        height: 3em;
+        font-weight: bold;
+    }
+    /* Hide default menu */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+# =============================================================================
+# DOCUMENTATION PAGE
+# =============================================================================
+def render_docs():
+    st.title("📚 User Manual & Strategy Guide")
+    st.markdown("Everything you need to know to become a ranking expert.")
+    
+    tab1, tab2, tab3, tab4 = st.tabs(["💡 Core Concepts", "🎯 Seniority Strategies", "🔍 Keyword Engine", "📤 Output Types"])
+    
+    with tab1:
+        st.header("How Scoring Works")
+        st.markdown("""
+        The tool calculates a **Final Score (0-100)** for every person based on 5 pillars. 
+        You control the importance of each pillar using the **Weights** slider.
+        """)
+        
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.info("**1. Seniority**\n\nHow well they match your target level (e.g. VP vs Intern).")
+        with c2:
+            st.info("**2. Keywords**\n\nPresence of 'Good' (Boost) vs 'Bad' (Penalty) terms.")
+        with c3:
+            st.info("**3. Company Size**\n\nLarger companies = higher score (10-80 pts).")
+            
+        c1, c2 = st.columns(2)
+        with c1:
+            st.info("**4. Network (Connections)**\n\nLogarithmic scale (0-100). More connections = higher influence.")
+        with c2:
+            st.info("**5. Social Proof (Followers)**\n\nSimilar to connections, but measures audience size.")
+
+    with tab2:
+        st.header("The Seniority Engine")
+        st.markdown("This is the most powerful part of the tool. It works in two stages:")
+        st.code("Stage 1 (Identity): Are they a VP or an Intern? (Raw Score 0-100)\nStage 2 (Target): Do I WANT a VP or an Intern? (Final Component Score)")
+        
+        st.divider()
+        st.subheader("🛠 Single Mode Strategies")
+        st.markdown("Use these when you have **one specific target**.")
+        
+        cols = st.columns(2)
+        with cols[0]:
+            st.markdown("#### `Prefer Senior` (High Level)")
+            st.write("✅ **Best for:** Finding Decision Makers (VPs, Directors).")
+            st.graphviz_chart('''
+            digraph {
+                rankdir=LR
+                "VP (Raw 90)" -> "Score 90"
+                "Intern (Raw 10)" -> "Score 10"
+            }
+            ''')
+            
+        with cols[1]:
+            st.markdown("#### `Prefer Junior` (Entry Level)")
+            st.write("✅ **Best for:** Finding talent to train.")
+            st.graphviz_chart('''
+            digraph {
+                rankdir=LR
+                "VP (Raw 90)" -> "Score 10"
+                "Intern (Raw 10)" -> "Score 90"
+            }
+            ''')
+            
+        cols = st.columns(2)
+        with cols[0]:
+            st.markdown("#### `Prefer Mid` (Managers)")
+            st.write("✅ **Best for:** Finding Team Leads / Managers.")
+            st.write("Scores peak at **50** (Manager level). Both Interns and VPs get lower scores.")
+            
+        with cols[1]:
+            st.markdown("#### `Target Range`")
+            st.write("✅ **Best for:** Surgical precision.")
+            st.write("Only gives 100 points if they are effectively inside your Min-Max range.")
+
+        st.divider()
+        st.subheader("⚡ Multi Mode Strategies")
+        st.markdown("Use these when you want a **mix** of candidates (e.g., 'Juniors AND Managers').")
+        
+        st.markdown("#### Combination Methods")
+        m1, m2, m3 = st.columns(3)
+        
+        m1.markdown("**1. Average**")
+        m1.caption("The Balanced Approach")
+        m1.write("Takes the average of all your targets. Good for finding 'well-rounded' matches.")
+        
+        m2.markdown("**2. Max**")
+        m2.caption("The Inclusive Approach")
+        m2.write("If they match ANY of your targets perfectly, they get a high score. Best for diverse hiring.")
+        
+        m3.markdown("**3. Weighted**")
+        m3.caption("The Precision Approach")
+        m3.write("You decide importance. e.g. 'Manager is 70% important, Junior is 30%'.")
+
+    with tab3:
+        st.header("Keyword Logic")
+        st.markdown("We don't just search for words; we search for **concepts**.")
+        
+        st.success("""
+        **Good Words (Boost)**
+        *   "Process Development"
+        *   "MSAT" / "CMC"
+        *   "Strategy"
+        
+        *Effect:* Adds points to the score.
+        """)
+        
+        st.error("""
+        **Bad Words (Penalty)**
+        *   "Consultant"
+        *   "Intern"
+        *   "Contractor"
+        
+        *Effect:* Subtracts points OR Removes row entirely (if Filter is checked).
+        """)
+        
+    with tab4:
+        st.header("Understanding the Output")
+        st.markdown("The tool adds these columns to your CSV:")
+        
+        data = {
+            "Column Name": ["ranking_score", "ranking_reason", "seniority_tier", "good_matches"],
+            "Description": ["Final 0-100 Score. Sort by this.", "AI explanation of WHY they got that score.", "Human-readable level (e.g. 'Director').", "List of keywords found in their profile."]
+        }
+        st.table(data)
+
+# =============================================================================
+# TOOL PAGE
+# =============================================================================
+def render_tool():
+    st.title("🎯 Audience Prioritization Tool")
+    
+    # -------------------------------------------------------------
+    # CONFIGURATION (MOVED HERE to avoid sidebar clutter on Docs page)
+    # -------------------------------------------------------------
+    with st.sidebar:
+        st.header("⚙️ Configuration")
+        
+        # 1. Weights expander
+        with st.expander("⚖️ Scoring Weights", expanded=False):
+            w_seniority = st.slider("Seniority", 0, 100, 40)
+            w_keyword = st.slider("Keywords", 0, 100, 20)
+            w_connections = st.slider("Connections", 0, 100, 20)
+            w_followers = st.slider("Followers", 0, 100, 10)
+            w_company = st.slider("Company Size", 0, 100, 10)
+
+        # 2. Keyword expander
+        with st.expander("📝 Keyword Settings", expanded=False):
+            filter_bad = st.checkbox("Filter 'Bad' Matches?", value=False, help="Remove rows containing negative keywords completely.")
+
+        # 3. Seniority Target
+        st.subheader("🎯 Seniority Strategy")
+        sen_mode_type = st.selectbox("Mode Type", ["Single", "Multi"], help="Choose one specific target or combine multiple strategies.")
+
+        sp_modes = []
+        sp_combine = "average"
+        sp_weights = None
+
+        if sen_mode_type == "Single":
+            mode_choice = st.radio(
+                "Target Strategy",
+                options=["Prefer Senior", "Prefer Junior", "Prefer Mid", "Balanced", "Target Range"],
+                captions=["High Level (VP/Director)", "Entry Level", "Managers/Leads", "Ignore Seniority", "Specific Score Zone"]
+            )
+            
+            if mode_choice == "Prefer Senior":
+                sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_SENIOR))
+            elif mode_choice == "Prefer Junior":
+                sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_JUNIOR))
+            elif mode_choice == "Prefer Mid":
+                target_score = st.number_input("Target Score (0-100)", 0, 100, 50)
+                sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_MID, {"t": target_score}))
+            elif mode_choice == "Balanced":
+                sp_modes.append(SeniorityMode(SeniorityModeType.BALANCED))
+            elif mode_choice == "Target Range":
+                c1, c2 = st.columns(2)
+                range_min = c1.number_input("Min", 0, 100, 40)
+                range_max = c2.number_input("Max", 0, 100, 60)
+                sp_modes.append(SeniorityMode(SeniorityModeType.TARGET_RANGE_BONUS, {"min": range_min, "max": range_max}))
+            sp = SeniorityPreference(is_multi=False, modes=sp_modes)
+
+        else:
+            selected_options = st.multiselect(
+                "Strategies to Combine",
+                options=["Senior", "Junior", "Mid", "Balanced", "Range"],
+                default=["Senior", "Mid"]
+            )
+            
+            for opt in selected_options:
+                if opt == "Senior": sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_SENIOR))
+                elif opt == "Junior": sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_JUNIOR))
+                elif opt == "Mid":
+                    t = st.number_input(f"Target 'Mid'", 0, 100, 50, key="mid_multi")
+                    sp_modes.append(SeniorityMode(SeniorityModeType.PREFER_MID, {"t": t}))
+                elif opt == "Balanced": sp_modes.append(SeniorityMode(SeniorityModeType.BALANCED))
+                elif opt == "Range":
+                    rmin = st.number_input("Min", 0, 100, 40, key="rmin_multi")
+                    rmax = st.number_input("Max", 0, 100, 60, key="rmax_multi")
+                    sp_modes.append(SeniorityMode(SeniorityModeType.TARGET_RANGE_BONUS, {"min": rmin, "max": rmax}))
+            
+            if len(sp_modes) > 0:
+                sp_combine = st.selectbox("Combine Method", ["Average", "Max", "Weighted"]).lower()
+                if sp_combine == "weighted":
+                    st.caption("Adjust relative importance:")
+                    raw_weights = []
+                    for i, m in enumerate(selected_options):
+                        val = st.slider(f"{m}", 0, 100, 50, key=f"w_{i}")
+                        raw_weights.append(float(val))
+                    sp_weights = raw_weights
+            
+            sp = SeniorityPreference(is_multi=True, modes=sp_modes, combine_method=sp_combine, weights=sp_weights)
+
+        # Config Objects
+        wc = WeightsConfig(float(w_seniority), float(w_keyword), float(w_connections), float(w_followers), float(w_company))
+        wc.normalize()
+        kc = KeywordConfig(filter_bad_rows=filter_bad)
+
+    # -------------------------------------------------------------
+    # MAIN RANKING UI
+    # -------------------------------------------------------------
+    uploaded_file = st.file_uploader("📂 Upload CSV File", type=["csv"], help="Drag and drop your LinkedIn export here.")
+
+    if uploaded_file:
+        try:
+            df = pd.read_csv(uploaded_file)
+            valid, missing, df = validate_columns(df)
+            
+            if not valid:
+                st.error(f"❌ Missing required columns: {missing}")
+            else:
+                if missing: st.toast("⚠️ Auto-mapped fuzzy column names.", icon="⚠️")
+                
+                # Big Run Button
+                if st.button("🚀 Rank My Audience", type="primary"):
+                    
+                    # STATUS CONTAINER
+                    with st.status("Processing Data...", expanded=True) as status:
+                        st.write("🔍 Parsing CSV & Keywords...")
+                        time.sleep(0.5) # UX pause
+                        st.write("🧮 Calculating Seniority Scores...")
+                        ranked_df = run_ranking(df, wc, sp, kc)
+                        st.write("📊 Generating Charts & Insights...")
+                        time.sleep(0.3)
+                        status.update(label="Ranking Complete!", state="complete", expanded=False)
+                    
+                    if ranked_df.empty:
+                        st.error("No candidates remained after filtering!")
+                    else:
+                        st.balloons()
+                        
+                        # DASHBOARD (KPIs)
+                        st.divider()
+                        k1, k2, k3, k4 = st.columns(4)
+                        k1.metric("Total Candidates", f"{len(ranked_df):,}")
+                        k2.metric("Top Score", f"{ranked_df['ranking_score'].max()}", delta="Max Possible: 100")
+                        k3.metric("Avg Score", f"{ranked_df['ranking_score'].mean():.1f}")
+                        top_tier = ranked_df['seniority_tier'].mode()[0] if not ranked_df.empty else "N/A"
+                        k4.metric("Most Common Level", top_tier)
+                        
+                        # CHARTS
+                        st.subheader("📈 Ranking Insights")
+                        c1, c2 = st.columns(2)
+                        
+                        with c1:
+                            # Seniority Distribution Bar Chart
+                            chart_data = ranked_df['seniority_tier'].value_counts().reset_index()
+                            chart_data.columns = ['Tier', 'Count']
+                            
+                            chart = alt.Chart(chart_data).mark_bar().encode(
+                                x=alt.X('Count', title='Candidates'),
+                                y=alt.Y('Tier', sort='-x', title=None),
+                                color=alt.Color('Tier', legend=None),
+                                tooltip=['Tier', 'Count']
+                            ).properties(height=300, title="Seniority Distribution")
+                            st.altair_chart(chart, use_container_width=True)
+                            
+                        with c2:
+                            # Score Histogram
+                            hist = alt.Chart(ranked_df).mark_bar().encode(
+                                alt.X("ranking_score", bin=alt.Bin(maxbins=20), title="Score Range"),
+                                y='count()',
+                                color=alt.value("#ff4b4b")
+                            ).properties(height=300, title="Score Distribution")
+                            st.altair_chart(hist, use_container_width=True)
+
+                        # MODERN TABLE
+                        st.subheader("🏆 Leading Candidates")
+                        
+                        # Prepare Columns
+                        final_cols = []
+                        for col in REQUIRED_COLUMNS: 
+                            if col in ranked_df.columns: final_cols.append(col)
+                        for col in RANKING_COLUMNS:
+                            if col in ranked_df.columns: final_cols.append(col)
+                        
+                        ranked_df = ranked_df[final_cols]
+                        
+                        # Column Config
+                        st.dataframe(
+                            ranked_df,
+                            column_order=("ranking_score", "full_name", "active_experience_title", "company_name_1", "seniority_tier", "linkedin_url", "ranking_reason"),
+                            column_config={
+                                "ranking_score": st.column_config.ProgressColumn(
+                                    "Score",
+                                    help="Final Ranking Score (0-100)",
+                                    format="%.1f",
+                                    min_value=0,
+                                    max_value=100,
+                                ),
+                                "linkedin_url": st.column_config.LinkColumn("Profile"),
+                                "ranking_reason": st.column_config.TextColumn("Why?", width="large"),
+                                "full_name": st.column_config.TextColumn("Name", width="medium"),
+                            },
+                            hide_index=True,
+                            use_container_width=True,
+                            height=400
+                        )
+                        
+                        with st.expander("Show Full Data Table"):
+                            st.dataframe(ranked_df)
+
+                        # DOWNLOADS
+                        st.divider()
+                        st.header("📥 Export")
+                        d1, d2, d3 = st.columns([1,1,2])
+                        
+                        csv = ranked_df.to_csv(index=False).encode('utf-8')
+                        d1.download_button("📄 Download CSV", csv, "ranked_audience.csv", "text/csv", key='dl-csv')
+                        
+                        buffer = io.BytesIO()
+                        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                            ranked_df.to_excel(writer, index=False, sheet_name='Ranked')
+                        d2.download_button("📊 Download Excel", buffer, "ranked_audience.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key='dl-xlsx')
+
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
+
+# =============================================================================
+# APP ROUTER
+# =============================================================================
+
+# Sidebar Nav
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["🚀 Ranker Tool", "📚 Reference Manual"])
+st.sidebar.divider()
+
+if page == "🚀 Ranker Tool":
+    render_tool()
+else:
+    render_docs()

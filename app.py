@@ -19,7 +19,7 @@ from rank_sample import (
 
 # Page Conf
 st.set_page_config(
-    page_title="Audience Ranker Pro", 
+    page_title="Audience Select", 
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -28,19 +28,56 @@ st.set_page_config(
 # CSS Styling for Modern Look
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .main-title {
+        font-size: 4rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.05em !important;
+        color: #1E1E1E;
+        margin-bottom: 0px !important;
+        line-height: 1 !important;
+        text-transform: uppercase;
+    }
+    
+    .signature {
+        font-size: 0.85rem !important;
+        font-weight: 400 !important;
+        color: #888888;
+        opacity: 0.6;
+        margin-top: -5px !important;
+        margin-bottom: 30px !important;
+        letter-spacing: 0.05em;
+    }
+
     .kpi-card {
         background-color: #f0f2f6;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 12px;
         text-align: center;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        border: 1px solid #e1e4e8;
     }
+    
     .stButton>button {
         width: 100%;
-        border-radius: 5px;
-        height: 3em;
-        font-weight: bold;
+        border-radius: 8px;
+        height: 3.5em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        transition: all 0.2s ease;
     }
+    
+    .stButton>button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
     /* Hide default menu */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -51,7 +88,9 @@ st.markdown("""
 # DOCUMENTATION PAGE
 # =============================================================================
 def render_docs():
-    st.title("📚 User Manual & Strategy Guide")
+    st.markdown('<p class="main-title">REFERENCE MANUAL</p>', unsafe_allow_html=True)
+    st.markdown('<p class="signature">Designed and Programmed by Steve Zhelyazkov</p>', unsafe_allow_html=True)
+    
     st.markdown("Everything you need to know to become a ranking expert.")
     
     tab1, tab2, tab3, tab4 = st.tabs(["💡 Core Concepts", "🎯 Seniority Strategies", "🔍 Keyword Engine", "📤 Output Types"])
@@ -139,28 +178,6 @@ def render_docs():
         m3.caption("The Precision Approach")
         m3.write("You decide importance. e.g. 'Manager is 70% important, Junior is 30%'.")
 
-    with tab3:
-        st.header("Keyword Logic")
-        st.markdown("We don't just search for words; we search for **concepts**.")
-        
-        st.success("""
-        **Good Words (Boost)**
-        *   "Process Development"
-        *   "MSAT" / "CMC"
-        *   "Strategy"
-        
-        *Effect:* Adds points to the score.
-        """)
-        
-        st.error("""
-        **Bad Words (Penalty)**
-        *   "Consultant"
-        *   "Intern"
-        *   "Contractor"
-        
-        *Effect:* Subtracts points OR Removes row entirely (if Filter is checked).
-        """)
-        
     with tab4:
         st.header("Understanding the Output")
         st.markdown("The tool adds these columns to your CSV:")
@@ -175,10 +192,11 @@ def render_docs():
 # TOOL PAGE
 # =============================================================================
 def render_tool():
-    st.title("🎯 Audience Prioritization Tool")
+    st.markdown('<p class="main-title">AUDIENCE SELECT</p>', unsafe_allow_html=True)
+    st.markdown('<p class="signature">Designed and Programmed by Steve Zhelyazkov</p>', unsafe_allow_html=True)
     
     # -------------------------------------------------------------
-    # CONFIGURATION (MOVED HERE to avoid sidebar clutter on Docs page)
+    # CONFIGURATION
     # -------------------------------------------------------------
     with st.sidebar:
         st.header("⚙️ Configuration")
@@ -263,7 +281,7 @@ def render_tool():
         kc = KeywordConfig(filter_bad_rows=filter_bad)
 
     # -------------------------------------------------------------
-    # MAIN RANKING UI
+    # MAIN UI
     # -------------------------------------------------------------
     uploaded_file = st.file_uploader("📂 Upload CSV File", type=["csv"], help="Drag and drop your LinkedIn export here.")
 
@@ -281,8 +299,6 @@ def render_tool():
                 st.sidebar.divider()
                 st.sidebar.header("🌍 Location Filter")
                 
-                # Get unique countries
-                # Note: df is guaranteed valid here
                 if 'location_country' in df.columns:
                     all_countries = sorted(df['location_country'].dropna().unique().tolist())
                     
@@ -295,7 +311,6 @@ def render_tool():
                             help="Leave empty to keep EVERYONE."
                         )
                         
-                        # FILTER LOGIC
                         if selected_countries:
                             rows_before = len(df)
                             df = df[df['location_country'].isin(selected_countries)]
@@ -314,7 +329,7 @@ def render_tool():
                     # STATUS CONTAINER
                     with st.status("Processing Data...", expanded=True) as status:
                         st.write("🔍 Parsing CSV & Keywords...")
-                        time.sleep(0.5) # UX pause
+                        time.sleep(0.5) 
                         st.write("🧮 Calculating Seniority Scores...")
                         ranked_df = run_ranking(df, wc, sp, kc)
                         st.write("📊 Generating Charts & Insights...")
@@ -340,10 +355,8 @@ def render_tool():
                         c1, c2 = st.columns(2)
                         
                         with c1:
-                            # Seniority Distribution Bar Chart
                             chart_data = ranked_df['seniority_tier'].value_counts().reset_index()
                             chart_data.columns = ['Tier', 'Count']
-                            
                             chart = alt.Chart(chart_data).mark_bar().encode(
                                 x=alt.X('Count', title='Candidates'),
                                 y=alt.Y('Tier', sort='-x', title=None),
@@ -353,7 +366,6 @@ def render_tool():
                             st.altair_chart(chart, use_container_width=True)
                             
                         with c2:
-                            # Score Histogram
                             hist = alt.Chart(ranked_df).mark_bar().encode(
                                 alt.X("ranking_score", bin=alt.Bin(maxbins=20), title="Score Range"),
                                 y='count()',
@@ -364,7 +376,6 @@ def render_tool():
                         # MODERN TABLE
                         st.subheader("🏆 Leading Candidates")
                         
-                        # Prepare Columns
                         final_cols = []
                         for col in REQUIRED_COLUMNS: 
                             if col in ranked_df.columns: final_cols.append(col)
@@ -373,7 +384,6 @@ def render_tool():
                         
                         ranked_df = ranked_df[final_cols]
                         
-                        # Column Config
                         st.dataframe(
                             ranked_df,
                             column_order=("ranking_score", "full_name", "active_experience_title", "company_name_1", "seniority_tier", "linkedin_url", "ranking_reason"),

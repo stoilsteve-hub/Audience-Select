@@ -135,12 +135,17 @@ GOOD_WORDS: List[str] = [
     "DSP", "USP", "Process Science", "Process Engineering", "Upstream", "Downstream", 
     "Engineering", "Strategy", "R&D", "Research", "Development", "Technical Development", 
     "Drug Development", "Technology Transfer", "Tech Transfer", "Technical Operations", 
-    "Formulation", "Lab", "Product", "Supply chain", "Principal Investigator"
+    "Formulation", "Lab", "Product", "Supply chain", "Principal Investigator",
+    "GMP", "cGMP", "Validation", "Quality Assurance", "QA", "Technical Writing", 
+    "CAPA", "Bioprocessing", "Scale-up", "Scale-down", "Fill Finish", "PAT", 
+    "Automation", "CDMO", "CMO", "Tech Ops", "Operations Strategy", "Program Management", 
+    "Cell Therapy", "Gene Therapy", "Biologics", "Antibodies", "mAb", "ATMP"
 ]
 
 BAD_WORDS: List[str] = [
     "Small molecule", "Consultant", "Statistician", "Data Analyst", "Intern", "Student", 
-    "Dossier", "Contractor", "Writer", "Co-op", "Oral"
+    "Dossier", "Contractor", "Writer", "Co-op", "Oral",
+    "Sales", "Marketing", "Recruiter", "Finance", "Accounting", "Retail"
 ]
 
 DEFAULT_BOOST = 8.0

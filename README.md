@@ -5,10 +5,35 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 ## Features
 
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
--   **Dynamic Seniority Engine**:
-    -   Target specific levels (e.g. Juniors, Mid-Level, Seniors).
-    -   Combine strategies with Multi-Mode support (e.g. Junior + Mid).
-    -   Two-stage process: Raw Classification -> Dynamic Transformation.
+
+### 🌟 Dynamic Seniority Engine (Simplified)
+
+We use a smart 2-stage process to ensure we find exactly who you are looking for, whether they are Interns, VPs, or anything in between.
+
+**STAGE 1: Identify Who They Are (Raw Classification)**
+First, the tool looks at every person's `Title` and `Management Level` to give them a "Raw Score" from 0 to 100.
+-   *Interns* get ~10 points.
+-   *Managers* get ~60 points.
+-   *VPs/CXOs* get ~90+ points.
+*Note: This raw score is NOT added to the final ranking yet. It just tells us "how senior" they are.*
+
+**STAGE 2: Score Them Based on Your Goal (Dynamic Transformation)**
+Now, you tell the tool who you want to target. The tool converts that Raw Score into a "Seniority Component" (0-100) that actually boosts their ranking.
+
+**Your Options:**
+1.  **Single Mode**: Pick one specific target.
+    -   `prefer_senior`: Higher rank = Higher score. (Good for finding VPs).
+    -   `prefer_junior`: *Inverts the score*. Interns get 100 points, VPs get 0. (Good for finding entry-level talent).
+    -   `prefer_mid`: Targets a specific sweet spot (e.g., score 50). Managers get the highest points; Interns and VPs get lower points.
+    -   `target_range_bonus`: You set a range (e.g., 40-60). Anyone inside gets 100 points; anyone outside gets a penalty.
+    -   `balanced`: Everyone gets 50 points (Seniority doesn't matter).
+
+2.  **Multi Mode**: Mix and match!
+    -   Example: Want *Juniors* AND *Mid-Level*? Select `J,M`.
+    -   The tool calculates scores for both and combines them (Average, Max, or Weighted).
+
+---
+
 -   **Phrase-Aware Keyword Engine**:
     -   Matches phrases (e.g. "Process Development") and acronyms.
     -   Configurable Boost (Good) and Penalty (Bad) points.
@@ -18,7 +43,7 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     -   `ranking_reason`: Auto-generated sentence explaining *why* a candidate was ranked high (e.g. "Seniority boost: 85 (Junior-target); Keyword relevance: 64...").
 -   **Strict Column Validation**: Automatically detects and maps required columns (handles `_one` -> `_1` automatically).
 -   **CLI Support**: Full automation via command-line flags.
--   **Logging**: detailed execution logs in `audience_ranker.log`.
+-   **Logging**: Detailed execution logs in `audience_ranker.log`.
 
 ## Prerequisites
 

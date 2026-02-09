@@ -4,6 +4,8 @@ import re
 import json
 import os
 import sys
+import logging
+import argparse
 
 # Optional dependency: tqdm
 try:
@@ -13,33 +15,12 @@ except ImportError:
     tqdm_available = False
     # Simple shim if not available
     def tqdm(iterable, desc=None, **kwargs):
-        if desc: print(f"{desc}...")
         return iterable
     tqdm.pandas = lambda **kwargs: None
 
 # ==========================================
-# README / INSTRUCTIONS
-# ==========================================
-#
-# Audience Prioritization Tool
-# ----------------------------
-#
-# DEPENDENCIES:
-#   pip install pandas openpyxl numpy tqdm
-#
-# HOW TO RUN:
-#   python rank_sample.py [optional_path_to_csv]
-#
-# DESCRIPTION:
-#   This tool ingests a CSV export, cleans/validates data, 
-#   calculates Dynamic Seniority and Keyword Relevance scores,
-#   and exports a ranked list.
-#
-# ==========================================
-
-# -----------------------------------------------------------------------------
 # CONSTANTS & CONFIGURATION
-# -----------------------------------------------------------------------------
+# ==========================================
 
 REQUIRED_COLUMNS = [
     "id",
@@ -80,7 +61,6 @@ EXPORT_COLUMN_ORDER = [
 ]
 
 DEFAULT_SENIORITY_MAPPING = {
-    # Management Levels (lower case keys)
     "management_levels": {
         "intern": 10, "co-op": 10, "apprentice": 10, "trainee": 10,
         "entry": 20, "junior": 25, "associate": 30,
@@ -92,7 +72,6 @@ DEFAULT_SENIORITY_MAPPING = {
         "cxo": 95, "c-level": 95, "c-suite": 95, "chief": 95,
         "owner": 90, "founder": 90, "partner": 80
     },
-    # Title Keywords (regex patterns)
     "title_keywords": {
         r"\bintern\b": 10, r"\bco-op\b": 10, r"\btrainee\b": 10,
         r"\bjunior\b": 20, r"\bassistant\b": 20,
@@ -104,7 +83,6 @@ DEFAULT_SENIORITY_MAPPING = {
         r"\bhead of\b": 75,
         r"\bvp\b": 80, r"\bvice president\b": 80,
         r"\bchief\b": 90, r"\bc\s*-\s*suite\b": 90, r"\bceo\b": 95, r"\bcto\b": 95, r"\bcfo\b": 95,
-        # Multilingual
         r"\boperario\b": 30, r"\bt[eé]cnico\b": 35, r"\btechnicien\b": 35,
         r"\bcharg[eé]e?\b": 40,
         r"\bm[lł]odszy\b": 20, 
@@ -138,13 +116,47 @@ DEFAULT_BOOST_PER_GOOD = 8.0
 DEFAULT_PENALTY_PER_BAD = 15.0
 
 # -----------------------------------------------------------------------------
+# LOGGING SETUP
+# -----------------------------------------------------------------------------
+
+logger = logging.getLogger("AudienceRanker")
+
+def setup_logging(verbose=False, quiet=False):
+    """
+    Sets up logging to file and console.
+    File: audience_ranker.log (DEBUG)
+    Console: INFO (default), DEBUG (verbose), WARNING (quiet)
+    """
+    logger.setLevel(logging.DEBUG) # Base level
+    
+    # 1. File Handler (Always DEBUG)
+    file_fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    fh = logging.FileHandler('audience_ranker.log', mode='w')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(file_fmt)
+    logger.addHandler(fh)
+    
+    # 2. Console Handler
+    if quiet:
+        console_level = logging.WARNING
+    elif verbose:
+        console_level = logging.DEBUG
+    else:
+        console_level = logging.INFO
+        
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(console_level)
+    # Simple formatter for console (just message)
+    console_fmt = logging.Formatter('%(message)s')
+    ch.setFormatter(console_fmt)
+    logger.addHandler(ch)
+
+# -----------------------------------------------------------------------------
 # UTILS
 # -----------------------------------------------------------------------------
 
 def normalize_text(s: str) -> str:
-    """Lowercases, replaces specific punctuation with spaces, collapses spaces."""
-    if not isinstance(s, str):
-        return ""
+    if not isinstance(s, str): return ""
     s = s.lower()
     for char in ['&', '/', '-', '_', '.', ',', ';', ':', '(', ')']:
         s = s.replace(char, ' ')
@@ -163,13 +175,13 @@ class KeywordEngine:
             if norm:
                 pattern = r'\b' + re.escape(norm) + r'\b'
                 self.good_patterns.append((word, re.compile(pattern)))
-                
         self.bad_patterns = []
         for word in bad_words:
             norm = normalize_text(word)
             if norm:
                 pattern = r'\b' + re.escape(norm) + r'\b'
                 self.bad_patterns.append((word, re.compile(pattern)))
+        logger.debug(f"KeywordEngine initialized with {len(good_words)} good and {len(bad_words)} bad words.")
 
     def compute_matches(self, row):
         combined_text = ""
@@ -183,16 +195,18 @@ class KeywordEngine:
         for original, pattern in self.good_patterns:
             if pattern.search(combined_text):
                 found_good.add(original)
-                
         found_bad = set()
         for original, pattern in self.bad_patterns:
             if pattern.search(combined_text):
                 found_bad.add(original)
+        
+        # Log specific matches for debugging only if needed (can be verbose)
+        if found_good or found_bad:
+            logger.debug(f"Row ID {row.get('id', '?')}: Found good={found_good}, bad={found_bad}")
                 
         return len(found_good), len(found_bad), ";".join(sorted(found_good)), ";".join(sorted(found_bad))
 
 class SeniorityRawEngine:
-    """Stage A: Raw Detection (Classification Only) - Returns 0-100 score."""
     def __init__(self, config_path=None):
         self.mappings = DEFAULT_SENIORITY_MAPPING.copy()
         if config_path and os.path.exists(config_path):
@@ -203,14 +217,15 @@ class SeniorityRawEngine:
                         self.mappings["management_levels"].update(user_config["management_levels"])
                     if "title_keywords" in user_config:
                         self.mappings["title_keywords"].update(user_config["title_keywords"])
-                print(f"Loaded seniority config from {config_path}")
+                logger.info(f"Loaded seniority config from {config_path}")
             except Exception as e:
-                print(f"Warning: Could not load config file: {e}")
+                logger.warning(f"Could not load config file: {e}")
+        else:
+            logger.debug("Using default seniority mappings.")
 
     def compute_raw_score(self, title, level):
         level_score = 0
         title_score = 0
-        
         if pd.notna(level):
             level_str = str(level).lower()
             best_match_len = 0
@@ -219,7 +234,6 @@ class SeniorityRawEngine:
                     if len(key) > best_match_len:
                         level_score = val
                         best_match_len = len(key)
-        
         if pd.notna(title):
             title_str = str(title).lower()
             found_scores = []
@@ -228,20 +242,14 @@ class SeniorityRawEngine:
                     found_scores.append(val)
             if found_scores:
                 title_score = max(found_scores)
-            
-            # Special Tie-breakers
             if re.search(r"\b(vp|vice president|chief|president|head of)\b", title_str):
                 title_score = max(title_score, 75)
 
         if level_score > 0 and title_score > 0:
             final_val = (level_score * 0.6) + (title_score * 0.4)
-        elif level_score > 0:
-            final_val = level_score
-        elif title_score > 0:
-            final_val = title_score
-        else:
-            final_val = 0
-
+        elif level_score > 0: final_val = level_score
+        elif title_score > 0: final_val = title_score
+        else: final_val = 0
         return min(100, max(0, int(final_val)))
     
     def get_tier(self, score):
@@ -255,40 +263,22 @@ class SeniorityRawEngine:
         return "Support/Intern/Unknown"
 
 class SeniorityTransformationEngine:
-    """Stage B: Dynamic Transformation - Converts raw score to component based on preference."""
-    
     @staticmethod
     def transform(raw_score, mode='prefer_senior', params=None):
         if params is None: params = {}
-        
-        if mode == 'prefer_senior':
-            return raw_score
-            
-        elif mode == 'prefer_junior':
-            return 100 - raw_score
-            
+        if mode == 'prefer_senior': return raw_score
+        elif mode == 'prefer_junior': return 100 - raw_score
         elif mode == 'prefer_mid':
             target = params.get('target', 50)
-            # Distance from target. Multiplied by 2 to punish deviation faster.
             diff = abs(raw_score - target)
-            res = 100 - (diff * 2)
-            return max(0, min(100, res))
-            
-        elif mode == 'balanced':
-            return 50
-            
+            return max(0, min(100, 100 - (diff * 2)))
+        elif mode == 'balanced': return 50
         elif mode == 'target_range_bonus':
-            min_s = params.get('min', 40)
-            max_s = params.get('max', 60)
-            if min_s <= raw_score <= max_s:
-                return 100
-            else:
-                # Penalty based on distance to nearest bound
-                dist = min(abs(raw_score - min_s), abs(raw_score - max_s))
-                # Soft penalty
-                return max(0, 100 - (dist * 2))
-                
-        return raw_score # Fallback
+            min_s, max_s = params.get('min', 40), params.get('max', 60)
+            if min_s <= raw_score <= max_s: return 100
+            dist = min(abs(raw_score - min_s), abs(raw_score - max_s))
+            return max(0, 100 - (dist * 2))
+        return raw_score
 
 # -----------------------------------------------------------------------------
 # DATA PIPELINE
@@ -299,8 +289,8 @@ def validate_columns(df):
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     
     if missing:
-        print(f"\nWarning: Missing {len(missing)} required columns.")
-        print("Attempting to find best matches...")
+        logger.warning(f"Missing {len(missing)} required columns.")
+        print("Attempting to find best matches... (Interactive Mode)")
         rename_map = {}
         for missing_col in missing:
             potential_matches = []
@@ -331,7 +321,7 @@ def validate_columns(df):
                     rename_map[manual] = missing_col
         
         if rename_map:
-            print(f"Renaming columns: {rename_map}")
+            logger.info(f"Renaming columns: {rename_map}")
             df = df.rename(columns=rename_map)
     
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
@@ -342,10 +332,10 @@ def validate_columns(df):
     df = df[EXPORT_COLUMN_ORDER + extra_cols]
     return True, [], df
 
-def load_data():
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
-        print(f"Using file from argument: {path}")
+def load_data(file_path=None):
+    if file_path:
+        path = file_path
+        logger.info(f"Using file from argument: {path}")
     else:
         path = input("\nEnter path to CSV file: ").strip().strip('"').strip("'")
             
@@ -354,14 +344,14 @@ def load_data():
              path = input("Please enter a path: ").strip().strip('"').strip("'")
              continue
         if not os.path.exists(path):
-            print(f"Error: File not found at {path}")
+            logger.error(f"File not found at {path}")
             path = "" 
             continue
         try:
-            print(f"Loading {path}...")
+            logger.info(f"Loading {path}...")
             return pd.read_csv(path) 
         except Exception as e:
-            print(f"Error reading file: {e}")
+            logger.error(f"Error reading file: {e}")
             retry = input("Try again? (y/n): ").lower()
             if retry != 'y': sys.exit()
             path = ""
@@ -378,23 +368,21 @@ def apply_filters(df):
     if countries:
         pattern = '|'.join([re.escape(c) for c in countries])
         df = df[df['location_country'].astype(str).str.contains(pattern, case=False, na=False)]
-        print(f"Rows after country filter: {len(df)}")
-    
+        logger.info(f"Rows after country filter: {len(df)}")
     if df.empty: return df
 
     sizes = get_user_input_list("Filter by Company Size Range (comma-separated): ")
     if sizes:
         pattern = '|'.join([re.escape(s) for s in sizes])
         df = df[df['company_size_range_1'].astype(str).str.contains(pattern, case=False, na=False)]
-        print(f"Rows after size filter: {len(df)}")
-
+        logger.info(f"Rows after size filter: {len(df)}")
     if df.empty: return df
 
     levels = get_user_input_list("Filter by Management Level (comma-separated): ")
     if levels:
         pattern = '|'.join([re.escape(l) for l in levels])
         df = df[df['management_level_1'].astype(str).str.contains(pattern, case=False, na=False)]
-        print(f"Rows after level filter: {len(df)}")
+        logger.info(f"Rows after level filter: {len(df)}")
 
     keywords = get_user_input_list("Hard Filter by Keywords (optional - comma-separated): ")
     if keywords:
@@ -405,7 +393,7 @@ def apply_filters(df):
             df['company_categories_and_keywords_1'].astype(str).str.contains(pattern, case=False, na=False)
         )
         df = df[mask]
-        print(f"Rows after keyword filter: {len(df)}")
+        logger.info(f"Rows after keyword filter: {len(df)}")
 
     return df
 
@@ -419,7 +407,7 @@ def get_weights():
         w_company = float(input("Weight for COMPANY SIZE (default 10): ") or 10)
         w_keywords = float(input("Weight for KEYWORD RELEVANCE (default 20): ") or 20)
     except ValueError:
-        print("Invalid input, using defaults.")
+        logger.warning("Invalid input for weights, using defaults.")
         w_seniority, w_connections, w_followers, w_company, w_keywords = 40, 20, 10, 10, 20
 
     total = w_seniority + w_connections + w_followers + w_company + w_keywords
@@ -434,7 +422,7 @@ def get_keyword_config():
         boost = float(input(f"Boost points per GOOD term (default {DEFAULT_BOOST_PER_GOOD}): ") or DEFAULT_BOOST_PER_GOOD)
         penalty = float(input(f"Penalty points per BAD term (default {DEFAULT_PENALTY_PER_BAD}): ") or DEFAULT_PENALTY_PER_BAD)
     except ValueError:
-        print("Invalid input, using defaults.")
+        logger.warning("Invalid input for keyword config, using defaults.")
         boost = DEFAULT_BOOST_PER_GOOD
         penalty = DEFAULT_PENALTY_PER_BAD
     return filter_bad, boost, penalty
@@ -451,8 +439,7 @@ def get_seniority_config():
     choice = input("Select Strategy (1-6): ").strip()
     modes = []
     
-    if choice == '2':
-        modes.append({'mode': 'prefer_junior', 'params': {}})
+    if choice == '2': modes.append({'mode': 'prefer_junior', 'params': {}})
     elif choice == '3':
         t = input("  Enter target score (0-100, default 50 for Manager/Senior): ").strip()
         target = float(t) if t.isdigit() else 50
@@ -461,96 +448,61 @@ def get_seniority_config():
         mn = input("  Range MIN (default 40): ").strip()
         mx = input("  Range MAX (default 60): ").strip()
         modes.append({'mode': 'target_range_bonus', 'params': {'min': float(mn) if mn else 40, 'max': float(mx) if mx else 60}})
-    elif choice == '5':
-        modes.append({'mode': 'balanced', 'params': {}})
+    elif choice == '5': modes.append({'mode': 'balanced', 'params': {}})
     elif choice == '6':
         print("  Enter modes separated by plus (+). Example: prefer_junior+prefer_mid")
-        print("  Supported: prefer_senior, prefer_junior, prefer_mid, target_range_bonus")
         raw_modes = input("  Modes: ").strip().split('+')
         for m in raw_modes:
             m = m.strip()
             if m in ['prefer_senior', 'prefer_junior', 'balanced']:
                 modes.append({'mode': m, 'params': {}})
-            elif m == 'prefer_mid':
-                modes.append({'mode': m, 'params': {'target': 50}}) # Default param for simplification in multi
-            elif m == 'target_range_bonus':
-                modes.append({'mode': m, 'params': {'min':40, 'max':60}})
-        if not modes:
-             modes.append({'mode': 'prefer_senior', 'params': {}})
-    else:
-        modes.append({'mode': 'prefer_senior', 'params': {}})
+            elif m == 'prefer_mid': modes.append({'mode': m, 'params': {'target': 50}})
+            elif m == 'target_range_bonus': modes.append({'mode': m, 'params': {'min':40, 'max':60}})
+        if not modes: modes.append({'mode': 'prefer_senior', 'params': {}})
+    else: modes.append({'mode': 'prefer_senior', 'params': {}})
         
     combine_method = 'average'
     if len(modes) > 1:
         combine_method = input("  Combine method (average/max/weighted): ").strip().lower()
         if combine_method not in ['average', 'max', 'weighted']: combine_method = 'average'
-        
     return modes, combine_method
-
-# -----------------------------------------------------------------------------
-# MAIN CALCULATION
-# -----------------------------------------------------------------------------
 
 def calculate_scores(df, weights, seniority_engine, keyword_engine, kw_config, sen_config):
     w_sen, w_conn, w_foll, w_comp, w_key = weights
     filter_bad, boost, penalty = kw_config
     modes, combine_method = sen_config
     
-    # ---------------------------
-    # 1. Seniority (Two Stages)
-    # ---------------------------
-    print("Calculating Seniority (Stage A: Raw)...")
-    
-    # helper for apply
+    logger.info("Calculating Seniority (Stage A: Raw Classification)...")
     def calc_raw(row):
         return seniority_engine.compute_raw_score(
-            row.get('active_experience_title'), 
-            row.get('management_level_1')
+            row.get('active_experience_title'), row.get('management_level_1')
         )
-            
-    # Stage A: Raw Score (0-100 Classification)
     if tqdm_available:
         try:
             tqdm.pandas(desc="Seniority Raw")
             raw_scores = df.progress_apply(calc_raw, axis=1)
-        except Exception:
+        except Exception as e:
+            logger.debug(f"tqdm pandas failed (`{e}`), falling back to standard apply")
             raw_scores = df.apply(calc_raw, axis=1)
-    else:
-        raw_scores = df.apply(calc_raw, axis=1)
+    else: raw_scores = df.apply(calc_raw, axis=1)
         
     df['raw_seniority_score'] = raw_scores
     df['seniority_tier'] = df['raw_seniority_score'].apply(seniority_engine.get_tier)
     
-    # Stage B: Dynamic Transformation
-    print(f"Calculating Seniority (Stage B: Transformation) - Modes: {len(modes)}")
-    
+    logger.info(f"Calculating Seniority (Stage B: Transformation) - Modes: {len(modes)}")
     def transform_row(score):
         vals = []
-        for m in modes:
-            vals.append(SeniorityTransformationEngine.transform(score, m['mode'], m['params']))
-        
+        for m in modes: vals.append(SeniorityTransformationEngine.transform(score, m['mode'], m['params']))
         if not vals: return 0
-        
-        if combine_method == 'max':
-            return max(vals)
-        elif combine_method == 'weighted':
-             # Simplified equal weight for now, or could ask user. Default to average implementation for 'weighted' unless specific weights passed
-             return sum(vals) / len(vals)
-        else: # average
-            return sum(vals) / len(vals)
+        if combine_method == 'max': return max(vals)
+        else: return sum(vals) / len(vals)
 
     df['seniority_component'] = df['raw_seniority_score'].apply(transform_row)
-    
-    # Diagnostics columns
     df['selected_modes'] = str([m['mode'] for m in modes])
     df['combine_method'] = combine_method
 
-    # ---------------------------
-    # 2. Network
-    # ---------------------------
     for col in ['connections_count', 'followers_count']:
         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-    
     df['connections_score'] = 0
     df['followers_score'] = 0
     if df['connections_count'].max() > 0:
@@ -561,32 +513,20 @@ def calculate_scores(df, weights, seniority_engine, keyword_engine, kw_config, s
         df['followers_score'] = (f_log / f_log.max()) * 100
     df['network_score'] = (df['connections_score'] + df['followers_score']) / 2 
 
-    # ---------------------------
-    # 3. Company Score
-    # ---------------------------
-    size_map = {
-        '1-10': 10, '11-50': 20, '51-200': 30, '201-500': 40, '501-1000': 50,
-        '1001-5000': 60, '5001-10000': 70, '10000+': 80
-    }
+    size_map = {'1-10': 10, '11-50': 20, '51-200': 30, '201-500': 40, '501-1000': 50, '1001-5000': 60, '5001-10000': 70, '10000+': 80}
     def get_comp_score(val):
-        val_str = str(val)
         for k, v in size_map.items():
-            if k in val_str: return v
+            if k in str(val): return v
         return 0
     df['company_score'] = df['company_size_range_1'].apply(get_comp_score)
 
-    # ---------------------------
-    # 4. Keyword Relevance
-    # ---------------------------
-    print("Calculating Keyword Relevance...")
+    logger.info("Calculating Keyword Relevance...")
     if tqdm_available:
         try:
             tqdm.pandas(desc="Keywords")
             kw_results = df.progress_apply(keyword_engine.compute_matches, axis=1, result_type='expand')
-        except Exception:
-            kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
-    else:
-        kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+        except Exception: kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+    else: kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
 
     kw_results.columns = ['good_match_count', 'bad_match_count', 'good_matches', 'bad_matches']
     df = pd.concat([df, kw_results], axis=1)
@@ -594,31 +534,23 @@ def calculate_scores(df, weights, seniority_engine, keyword_engine, kw_config, s
     if filter_bad:
         initial_len = len(df)
         df = df[df['bad_match_count'] == 0]
-        print(f"Filtered out {initial_len - len(df)} rows containing bad words.")
+        logger.info(f"Filtered out {initial_len - len(df)} rows containing bad words.")
     if df.empty: return df
 
     raw_kw_score = (df['good_match_count'] * boost) - (df['bad_match_count'] * penalty)
     df['keyword_score'] = raw_kw_score.clip(lower=0, upper=100)
 
-    # ---------------------------
-    # 5. Final Score
-    # ---------------------------
-    # USING seniority_component instead of seniority_score
     df['final_score'] = (
-        (df['seniority_component'] * w_sen) +
-        (df['connections_score'] * w_conn) +
-        (df['followers_score'] * w_foll) +
-        (df['company_score'] * w_comp) +
+        (df['seniority_component'] * w_sen) + (df['connections_score'] * w_conn) +
+        (df['followers_score'] * w_foll) + (df['company_score'] * w_comp) +
         (df['keyword_score'] * w_key)
     )
-
     return df.sort_values(by='final_score', ascending=False)
 
 def print_diagnostics(df):
     print("\n--- DIAGNOSTICS ---")
     print(f"Total processed rows: {len(df)}")
     print(f"Seniority Strategy: {df['selected_modes'].iloc[0]} (Merge: {df['combine_method'].iloc[0]})")
-    
     print("\nSample Scores (Top 3):")
     cols = ['full_name', 'raw_seniority_score', 'seniority_component', 'final_score']
     print(df[cols].head(3).to_string(index=False))
@@ -635,34 +567,43 @@ def print_diagnostics(df):
 def export_data(df):
     print("\n--- EXPORT ---")
     limit_str = input("How many top results to export? (Enter for all): ").strip()
-    if limit_str and limit_str.isdigit():
-        df = df.head(int(limit_str))
+    if limit_str and limit_str.isdigit(): df = df.head(int(limit_str))
         
     choice = input("Export format: 1) CSV 2) Excel 3) Both (Enter 1, 2, or 3): ").strip()
     filename = input("Output file name/prefix (default 'ranked_leads'): ").strip() or "ranked_leads"
     
     if choice in ['1', '3']:
         df.to_csv(f"{filename}.csv", index=False)
-        print(f"Exported {filename}.csv")
+        logger.info(f"Exported {filename}.csv")
     if choice in ['2', '3']:
         try:
             df.to_excel(f"{filename}.xlsx", index=False)
-            print(f"Exported {filename}.xlsx")
+            logger.info(f"Exported {filename}.xlsx")
         except Exception as e:
-            print(f"Excel export failed: {e}")
+            logger.error(f"Excel export failed: {e}")
 
 def main():
-    print("Welcome to the Audience Prioritization Tool (v2.0 - Dynamic Seniority).")
+    parser = argparse.ArgumentParser(description="Audience Prioritization Tool")
+    parser.add_argument("input_file", nargs='?', help="Path to input CSV file")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose debug logging")
+    parser.add_argument("-q", "--quiet", action="store_true", help="Suppress operational logs (warnings/errors only)")
     
-    df = load_data()
+    # Parse known args to allow mixing wizard + flags, or just flags
+    args = parser.parse_args()
+    
+    setup_logging(verbose=args.verbose, quiet=args.quiet)
+    
+    logger.info("Welcome to the Audience Prioritization Tool (v2.1 - Logging Enabled).")
+    
+    df = load_data(args.input_file)
     valid, missing, df = validate_columns(df)
     if not valid:
-        print(f"CRITICAL ERROR: Missing {missing}")
+        logger.error(f"CRITICAL ERROR: Missing {missing}")
         return
 
     df = apply_filters(df)
     if df.empty:
-        print("No rows left.")
+        logger.warning("No rows left after filtering.")
         return
 
     seniority_engine = SeniorityRawEngine("seniority_config.json")
@@ -675,17 +616,18 @@ def main():
     df = calculate_scores(df, weights, seniority_engine, keyword_engine, kw_config, sen_config)
     
     if df.empty:
-        print("All rows filtered out!")
+        logger.warning("All rows filtered out!")
         return
 
     print_diagnostics(df)
     
+    # Preview should arguably be a print, not a log, as it's the core output
     print("\n--- PREVIEW (Top 10) ---")
     preview_cols = ['full_name', 'active_experience_title', 'seniority_tier', 'raw_seniority_score', 'seniority_component', 'final_score']
     print(df[preview_cols].head(10).to_string(index=False))
     
     export_data(df)
-    print("\nDone!")
+    logger.info("Done!")
 
 if __name__ == "__main__":
     main()

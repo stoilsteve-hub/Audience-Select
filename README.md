@@ -9,9 +9,12 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     -   Target specific levels (e.g. Juniors, Mid-Level, Seniors).
     -   Combine strategies with Multi-Mode support.
     -   Two-stage process: Classification (Stage A) -> Transformation (Stage B).
--   **Keyword Relevance Engine**: Scores candidates based on "Good" (e.g., MS&T, CMC) and "Bad" (e.g., Intern, Student) phrases found in their profile.
--   **Fuzzy Column Mapping**: Automatically detects and suggests mappings for missing or misspelled column headers (e.g. maps `Level` -> `management_level_1`).
--   **Progress Bars**: Visual feedback for long-running operations on large datasets (requires `tqdm`).
+-   **Keyword Relevance Engine**: Scores candidates based on configurable "Good" and "Bad" phrases.
+-   **Fuzzy Column Mapping**: Automatically detects and suggests mappings for missing or misspelled column headers.
+-   **Progress Bars & Logging (v2.1)**:
+    -   Visual feedback for long-running operations (requires `tqdm`).
+    -   Detailed execution logs in `audience_ranker.log`.
+    -   CLI flags for verbosity (`--verbose`, `--quiet`).
 -   **Multilingual Support**: Recognizes seniority terms in English, Spanish, French, Polish, etc.
 -   **Customizable Weights**: User can adjust importance of Seniority, Connections, Followers, Company Size, and Keywords per run.
 -   **Export**: Output ranked lists to CSV or Excel.
@@ -31,13 +34,20 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 
 ## Usage
 
-1.  Run the script:
+1.  **Run the script**:
     ```bash
     python3 rank_sample.py
     ```
-    *Optional: Pass CSV path as argument:* `python3 rank_sample.py my_data.csv`
+    *Optional: Pass CSV path as argument:*
+    ```bash
+    python3 rank_sample.py my_data.csv
+    ```
 
-2.  **Follow the prompts**:
+2.  **CLI Flags**:
+    -   `--verbose` (`-v`): Enable debug logging (see `audience_ranker.log` and console).
+    -   `--quiet` (`-q`): Suppress operational logs, showing only prompts/results.
+
+3.  **Follow the prompts**:
     -   **Input**: Path to your CSV file. If columns mismatch, the tool will verify mappings with you.
     -   **Filters**: Filter by Country, Company Size, Management Level, or Keywords (press Enter to skip).
     -   **Weights**: Set relative importance (0-100) for scoring factors.

@@ -5,6 +5,18 @@ import json
 import os
 import sys
 
+# Optional dependency: tqdm
+try:
+    from tqdm import tqdm
+    tqdm_available = True
+except ImportError:
+    tqdm_available = False
+    # Simple shim if not available
+    def tqdm(iterable, desc=None, **kwargs):
+        if desc: print(f"{desc}...")
+        return iterable
+    tqdm.pandas = lambda **kwargs: None
+
 # ==========================================
 # README / INSTRUCTIONS
 # ==========================================
@@ -13,7 +25,7 @@ import sys
 # ----------------------------
 #
 # DEPENDENCIES:
-#   pip install pandas openpyxl numpy
+#   pip install pandas openpyxl numpy tqdm
 #
 # HOW TO RUN:
 #   python rank_sample.py [optional_path_to_csv]
@@ -267,6 +279,62 @@ class SeniorityEngine:
         return "Support/Intern/Unknown"
 
 def validate_columns(df):
+    """
+    Validates existence of required columns.
+    Attempts fuzzy mapping for missing columns if user approves.
+    """
+    # Force lowercase strip on df columns first
+    df.columns = df.columns.str.strip().str.lower()
+    
+    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+    
+    if missing:
+        # Fuzzy mapping logic
+        print(f"\nWarning: Missing {len(missing)} required columns.")
+        print("Attempting to find best matches...")
+        
+        rename_map = {}
+        for missing_col in missing:
+            # Simple heuristic: substring, or maybe something like 'company' in name
+            # Or ask user to select from available columns?
+            # Let's try to match by partial string or look for common alternatives
+            
+            potential_matches = []
+            for existing_col in df.columns:
+                # Naive similarity: if one is substring of another or highly similar
+                if missing_col in existing_col or existing_col in missing_col:
+                    potential_matches.append(existing_col)
+            
+            # Additional heuristic replacements
+            if not potential_matches:
+                if "1" in missing_col:
+                    # check for '_one' version or just base name
+                    alt = missing_col.replace("_1", "_one")
+                    if alt in df.columns: potential_matches.append(alt)
+                    alt2 = missing_col.replace("_1", "")
+                    if alt2 in df.columns: potential_matches.append(alt2)
+
+            if potential_matches:
+                print(f"  Missing: '{missing_col}'")
+                print(f"  Found potential matches: {potential_matches}")
+                choice = input(f"  Use '{potential_matches[0]}' for '{missing_col}'? (y/n/manual): ").strip().lower()
+                if choice == 'y':
+                    rename_map[potential_matches[0]] = missing_col
+                elif choice == 'manual':
+                    manual = input(f"  Enter column name to map to '{missing_col}' (or Enter to skip): ").strip()
+                    if manual and manual in df.columns:
+                        rename_map[manual] = missing_col
+            else:
+                # Manual fallback
+                manual = input(f"  No match found for '{missing_col}'. Enter column to map (or Enter to fail): ").strip()
+                if manual and manual in df.columns:
+                    rename_map[manual] = missing_col
+        
+        if rename_map:
+            print(f"Renaming columns: {rename_map}")
+            df = df.rename(columns=rename_map)
+    
+    # Re-check missing after mapping
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         return False, missing, df
@@ -295,8 +363,8 @@ def load_data():
             
         try:
             print(f"Loading {path}...")
-            df = pd.read_csv(path)
-            df.columns = df.columns.str.strip().str.lower()
+            # Detect encoding? Default usually works or utf-8
+            df = pd.read_csv(path) 
             return df
         except Exception as e:
             print(f"Error reading file: {e}")
@@ -396,14 +464,31 @@ def get_keyword_config():
 def calculate_scores(df, weights, seniority_engine, keyword_engine, filter_bad, boost_per_good, penalty_per_bad):
     w_sen, w_conn, w_foll, w_comp, w_key = weights
     
+    if tqdm_available:
+        tqdm.pandas(desc="Calculating Seniority")
+
     # 1. Seniority
     print("Calculating Seniority Scores...")
-    seniority_results = df.apply(
-        lambda row: seniority_engine.compute_score(
-            row.get('active_experience_title'), 
-            row.get('management_level_1')
-        ), axis=1
-    )
+    # Use progress_apply if tqdm available and working, else fallback
+    try:
+        if tqdm_available:
+            seniority_results = df.progress_apply(
+                lambda row: seniority_engine.compute_score(
+                    row.get('active_experience_title'), 
+                    row.get('management_level_1')
+                ), axis=1
+            )
+        else:
+            raise ImportError("tqdm not available")
+    except Exception:
+        # Fallback if tqdm.pandas() failed or not available
+        seniority_results = df.apply(
+            lambda row: seniority_engine.compute_score(
+                row.get('active_experience_title'), 
+                row.get('management_level_1')
+            ), axis=1
+        )
+
     df['seniority_score'] = seniority_results
     df['seniority_tier'] = df['seniority_score'].apply(seniority_engine.get_tier)
     
@@ -439,11 +524,15 @@ def calculate_scores(df, weights, seniority_engine, keyword_engine, filter_bad, 
     # 4. Keyword Match Score (New Logic)
     print("Calculating Keyword Relevance...")
     
-    # Run compute_matches on each row
-    # This returns a tuple, so we use result_type='expand' to assign to columns directly? 
-    # Or just iterate. Iterating might be clearer.
-    
-    kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+    if tqdm_available:
+        try:
+            tqdm.pandas(desc="Keywords")
+            kw_results = df.progress_apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+        except Exception:
+            kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+    else:
+        kw_results = df.apply(keyword_engine.compute_matches, axis=1, result_type='expand')
+
     kw_results.columns = ['good_match_count', 'bad_match_count', 'good_matches', 'bad_matches']
     
     df = pd.concat([df, kw_results], axis=1)
@@ -457,10 +546,6 @@ def calculate_scores(df, weights, seniority_engine, keyword_engine, filter_bad, 
     if df.empty: return df
 
     # Compute keyword_score
-    # formula: 0 + (good * boost) - (bad * penalty). Cap at 100, floor at 0.
-    # Wait, penalty should floor at 0? "Subtract points... floor at 0". 
-    # Assuming the phrase "keyword_score (0-100)" implies the component score itself is clamped 0-100.
-    
     raw_kw_score = (df['good_match_count'] * boost_per_good) - (df['bad_match_count'] * penalty_per_bad)
     df['keyword_score'] = raw_kw_score.clip(lower=0, upper=100)
 
@@ -511,10 +596,6 @@ def export_data(df):
         
     choice = input("Export format: 1) CSV 2) Excel 3) Both (Enter 1, 2, or 3): ").strip()
     filename = input("Output file name/prefix (default 'ranked_leads'): ").strip() or "ranked_leads"
-    
-    # Only keep relevant columns + metrics for export, maybe drop calculation artifacts if we want cleaner output?
-    # User asked for "all original columns... plus computed columns".
-    # I'll keep the match counts/lists as useful context.
     
     if choice in ['1', '3']:
         out_csv = f"{filename}.csv"

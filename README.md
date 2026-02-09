@@ -7,6 +7,8 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 -   **Interactive Console Wizard**: Prompts for file paths, filters, and scoring weights.
 -   **Rule-Based Seniority Engine**: Calculates seniority tiers (e.g., Senior, VP, C-Suite) using a hybrid of `management_level_1` and title keywords.
 -   **Keyword Relevance Engine**: Scores candidates based on "Good" (e.g., MS&T, CMC) and "Bad" (e.g., Intern, Student) phrases found in their profile.
+-   **Fuzzy Column Mapping**: Automatically detects and suggests mappings for missing or misspelled column headers (e.g. maps `Level` -> `management_level_1`).
+-   **Progress Bars**: Visual feedback for long-running operations on large datasets (requires `tqdm`).
 -   **Multilingual Support**: Recognizes seniority terms in English, Spanish, French, Polish, etc.
 -   **Customizable Weights**: User can adjust importance of Seniority, Connections, Followers, Company Size, and Keywords per run.
 -   **Export**: Output ranked lists to CSV or Excel.
@@ -14,14 +16,14 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
 ## Prerequisites
 
 -   Python 3.10+
--   Dependencies: `pandas`, `openpyxl`, `numpy`
+-   Dependencies: `pandas`, `openpyxl`, `numpy`, `tqdm` (optional but recommended)
 
 ## Installation
 
 1.  Clone or download this repository.
 2.  Install dependencies:
     ```bash
-    pip install pandas openpyxl numpy
+    pip install pandas openpyxl numpy tqdm
     ```
 
 ## Usage
@@ -33,7 +35,7 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     *Optional: Pass CSV path as argument:* `python3 rank_sample.py my_data.csv`
 
 2.  **Follow the prompts**:
-    -   **Input**: Path to your CSV file (must contain required columns like `id`, `full_name`, `management_level_1`, etc.).
+    -   **Input**: Path to your CSV file. If columns mismatch, the tool will verify mappings with you.
     -   **Filters**: Filter by Country, Company Size, Management Level, or Keywords (press Enter to skip).
     -   **Weights**: Set relative importance (0-100) for scoring factors.
     -   **Keyword Config**: Choose `A` to Penalize bad words or `B` to Filter them out. Set boost/penalty amounts.
@@ -55,6 +57,8 @@ The tool expects specific column names (all lowercase), including:
 -   `active_experience_description`
 -   `department_1`
 -   ... (see `rank_sample.py` for full list)
+
+*Note: The tool attempts to map columns if headers don't match exactly.*
 
 ## Output
 

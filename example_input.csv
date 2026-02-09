@@ -1,0 +1,9 @@
+id,full_name,linkedin_url,active_experience_title,management_level_1,company_id_1,company_name_1,company_size_range_1,company_categories_and_keywords_1,location_country,connections_count,followers_count,department_1,active_experience_description,company_industry_1,company_employees_count_1
+1,John Doe,http://linkedin.com/in/john,Senior Software Engineer,Senior,123,Tech Corp,1001-5000,"Technology, CMC strategy",United States,500,600,Engineering,Developing software for Tech Transfer,Software,4000
+2,Jane Smith,http://linkedin.com/in/jane,VP of Engineering,VP,123,Tech Corp,1001-5000,Technology,United States,2000,3000,"Engineering, R&D",Leading engineering and technical operations,Software,4000
+3,Bob Jones,http://linkedin.com/in/bob,Intern,Intern,456,Small Shop,1-10,Retail,Canada,50,50,Sales,Selling stuff as a Student,Retail,5
+4,Alice Wonder,http://linkedin.com/in/alice,Director of Marketing,Director,789,Big Biz,10000+,Marketing,United States,1500,2000,Marketing,Marketing strategy for drug development,Marketing,15000
+5,Charlie Brown,http://linkedin.com/in/charlie,Manager,Manager,456,Small Shop,1-10,Retail,Canada,300,400,Sales,Managing sales,Retail,5
+6,Dr. Evil,http://linkedin.com/in/evil,Chief Scientist,Senior,999,Evil Corp,501-1000,Science,Germany,5000,10000,R&D,World domination involves Small molecule,Science,800
+7,Pierre Curie,http://linkedin.com/in/pierre,Technicien,Entry,888,Lab Inc,51-200,Science,France,100,100,R&D,Lab work in Sterile Manufacturing,Science,150
+8,Juan Perez,http://linkedin.com/in/juan,Gerente de Ventas,Manager,777,Ventas SA,201-500,Sales,Spain,400,450,Sales,Sales management,Sales,300

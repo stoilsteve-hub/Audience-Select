@@ -1,0 +1,24 @@
+{
+  "management_level_mappings": {
+    "intern": 10,
+    "entry": 20,
+    "senior": 50,
+    "manager": 60,
+    "director": 70,
+    "vp": 80,
+    "cxo": 90
+  },
+  "title_keyword_mappings": {
+    "intern": 10,
+    "junior": 20,
+    "associate": 30,
+    "senior": 50,
+    "lead": 60,
+    "principal": 65,
+    "manager": 60,
+    "director": 70,
+    "vp": 80,
+    "chief": 90,
+    "head": 75
+  }
+}

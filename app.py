@@ -188,6 +188,29 @@ def render_docs():
         }
         st.table(data)
 
+def validate_columns_safe(df):
+    # Normalize headers
+    df.columns = df.columns.astype(str).str.strip().str.lower()
+    
+    # Check
+    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+    
+    # Auto-fix _one -> _1
+    rename_map = {}
+    for m in missing:
+        if m.endswith("_1"):
+           legacy = m.replace("_1", "_one")
+           if legacy in df.columns:
+               rename_map[legacy] = m
+    
+    if rename_map:
+        df = df.rename(columns=rename_map)
+        missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+
+    if missing:
+        return False, missing, df
+    return True, [], df
+
 # =============================================================================
 # TOOL PAGE
 # =============================================================================
@@ -287,12 +310,36 @@ def render_tool():
 
     if uploaded_file:
         try:
-            df = pd.read_csv(uploaded_file)
-            valid, missing, df = validate_columns(df)
+            # 1. ATTEMPT ROBUST READ
+            try:
+                # Try reading with Python engine which is more forgiving
+                df = pd.read_csv(uploaded_file, on_bad_lines='skip', engine='python')
+                
+                # FIX: Auto-detect semicolon separator (common in some regions/Excel)
+                if len(df.columns) == 1 and ';' in str(df.columns[0]):
+                    st.toast("Detected semicolon separator. Reloading...", icon="🔄")
+                    uploaded_file.seek(0)
+                    df = pd.read_csv(uploaded_file, on_bad_lines='skip', engine='python', sep=';')
+
+            except Exception as e_read:
+                st.warning(f"⚠️ First read attempt failed: {e_read}. Retrying with fallback...")
+                uploaded_file.seek(0)
+                try:
+                    df = pd.read_csv(uploaded_file, on_bad_lines='skip')
+                except Exception as e_final:
+                    st.error(f"❌ CRITICAL ERROR: Could not read this CSV file.\n\nError details: {e_final}")
+                    st.stop()
+
+            # 2. VALIDATE COLUMNS (SAFE MODE)
+            valid, missing, df = validate_columns_safe(df)
             
             if not valid:
+                st.warning(f"Debug - Found Columns: {list(df.columns)}")
                 st.error(f"❌ Missing required columns: {missing}")
+                st.info("The app cannot proceed without these columns. Please check your CSV headers.")
             else:
+                st.success(f"✅ Successfully loaded {len(df)} candidates!")
+
                 # -------------------------------------------------------------
                 # COUNTRY FILTER
                 # -------------------------------------------------------------

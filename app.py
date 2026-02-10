@@ -463,8 +463,23 @@ def render_tool():
                         d1.download_button("📄 Download CSV", csv, "ranked_audience.csv", "text/csv", key='dl-csv')
                         
                         buffer = io.BytesIO()
+
+                        # Sanitize for Excel (remove illegal chars and truncate)
+                        def clean_data_for_excel(val):
+                            if isinstance(val, str):
+                                # Remove control chars (0-31) except tab(9), newline(10), cr(13)
+                                import re
+                                val = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F]', '', val)
+                                return val[:32000] # Truncate to safe limit
+                            return val
+
+                        df_export = ranked_df.copy()
+                        for col in df_export.select_dtypes(include=['object']):
+                            df_export[col] = df_export[col].apply(clean_data_for_excel)
+
                         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            ranked_df.to_excel(writer, index=False, sheet_name='Ranked')
+                            df_export.to_excel(writer, index=False, sheet_name='Ranked')
+                        buffer.seek(0)
                         d2.download_button("📊 Download Excel", buffer, "ranked_audience.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key='dl-xlsx')
 
         except Exception as e:

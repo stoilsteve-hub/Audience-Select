@@ -370,7 +370,31 @@ def render_tool():
                 else:
                     st.sidebar.warning("Column 'location_country' missing. Cannot filter.")
 
-                # Big Run Button
+                # Company Filter (Exclude)
+                st.sidebar.header("🏢 Company Filter")
+                if 'company_name_1' in df.columns:
+                    # Calculate counts for display (based on current filtered data)
+                    company_counts = df['company_name_1'].value_counts().to_dict()
+                    all_companies = sorted(df['company_name_1'].dropna().astype(str).unique().tolist())
+                    
+                    exclude_companies = st.sidebar.multiselect(
+                        "Select Companies to Exclude",
+                        options=all_companies,
+                        format_func=lambda x: f"{x} ({company_counts.get(x, 0)})",
+                        help="Any company selected here will be REMOVED from the analysis."
+                    )
+                    
+                    if exclude_companies:
+                        rows_before = len(df)
+                        df = df[~df['company_name_1'].isin(exclude_companies)]
+                        rows_after = len(df)
+                        st.sidebar.caption(f"Excluded: {rows_before - rows_after} candidates")
+                        
+                        if df.empty:
+                            st.error("⚠️ You filtered out ALL candidates! Please check your filters.")
+                            st.stop()
+                else:
+                    st.sidebar.warning("Column 'company_name_1' missing. Cannot filter.")
                 # Big Run Button
                 if st.button("🚀 Rank My Audience", type="primary"):
                     

@@ -371,6 +371,7 @@ def render_tool():
                     st.sidebar.warning("Column 'location_country' missing. Cannot filter.")
 
                 # Big Run Button
+                # Big Run Button
                 if st.button("🚀 Rank My Audience", type="primary"):
                     
                     # STATUS CONTAINER
@@ -387,100 +388,115 @@ def render_tool():
                         st.error("No candidates remained after filtering!")
                     else:
                         st.balloons()
-                        
-                        # DASHBOARD (KPIs)
-                        st.divider()
-                        k1, k2, k3, k4 = st.columns(4)
-                        k1.metric("Total Candidates", f"{len(ranked_df):,}")
-                        k2.metric("Top Score", f"{ranked_df['ranking_score'].max()}", delta="Max Possible: 100")
-                        k3.metric("Avg Score", f"{ranked_df['ranking_score'].mean():.1f}")
-                        top_tier = ranked_df['seniority_tier'].mode()[0] if not ranked_df.empty else "N/A"
-                        k4.metric("Most Common Level", top_tier)
-                        
-                        # CHARTS
-                        st.subheader("📈 Ranking Insights")
-                        c1, c2 = st.columns(2)
-                        
-                        with c1:
-                            chart_data = ranked_df['seniority_tier'].value_counts().reset_index()
-                            chart_data.columns = ['Tier', 'Count']
-                            chart = alt.Chart(chart_data).mark_bar().encode(
-                                x=alt.X('Count', title='Candidates'),
-                                y=alt.Y('Tier', sort='-x', title=None),
-                                color=alt.Color('Tier', legend=None),
-                                tooltip=['Tier', 'Count']
-                            ).properties(height=300, title="Seniority Distribution")
-                            st.altair_chart(chart, use_container_width=True)
-                            
-                        with c2:
-                            hist = alt.Chart(ranked_df).mark_bar().encode(
-                                alt.X("ranking_score", bin=alt.Bin(maxbins=20), title="Score Range"),
-                                y='count()',
-                                color=alt.value("#ff4b4b")
-                            ).properties(height=300, title="Score Distribution")
-                            st.altair_chart(hist, use_container_width=True)
+                        # Save to session state
+                        st.session_state['ranked_df'] = ranked_df
+                        st.rerun()
 
-                        # MODERN TABLE
-                        st.subheader("🏆 Leading Candidates")
+                # PERSISTENT RESULTS DISPLAY
+                if 'ranked_df' in st.session_state:
+                    ranked_df = st.session_state['ranked_df']
+                    
+                    # DASHBOARD (KPIs)
+                    st.divider()
+                    k1, k2, k3, k4 = st.columns(4)
+                    k1.metric("Total Candidates", f"{len(ranked_df):,}")
+                    k2.metric("Top Score", f"{ranked_df['ranking_score'].max()}", delta="Max Possible: 100")
+                    k3.metric("Avg Score", f"{ranked_df['ranking_score'].mean():.1f}")
+                    top_tier = ranked_df['seniority_tier'].mode()[0] if not ranked_df.empty else "N/A"
+                    k4.metric("Most Common Level", top_tier)
+                    
+                    # CHARTS
+                    st.subheader("📈 Ranking Insights")
+                    c1, c2 = st.columns(2)
+                    
+                    with c1:
+                        chart_data = ranked_df['seniority_tier'].value_counts().reset_index()
+                        chart_data.columns = ['Tier', 'Count']
+                        chart = alt.Chart(chart_data).mark_bar().encode(
+                            x=alt.X('Count', title='Candidates'),
+                            y=alt.Y('Tier', sort='-x', title=None),
+                            color=alt.Color('Tier', legend=None),
+                            tooltip=['Tier', 'Count']
+                        ).properties(height=300, title="Seniority Distribution")
+                        st.altair_chart(chart, use_container_width=True)
                         
-                        final_cols = []
-                        for col in REQUIRED_COLUMNS: 
-                            if col in ranked_df.columns: final_cols.append(col)
-                        for col in RANKING_COLUMNS:
-                            if col in ranked_df.columns: final_cols.append(col)
-                        
-                        ranked_df = ranked_df[final_cols]
-                        
-                        st.dataframe(
-                            ranked_df,
-                            column_order=("ranking_score", "full_name", "active_experience_title", "company_name_1", "seniority_tier", "linkedin_url", "ranking_reason"),
-                            column_config={
-                                "ranking_score": st.column_config.ProgressColumn(
-                                    "Score",
-                                    help="Final Ranking Score (0-100)",
-                                    format="%.1f",
-                                    min_value=0,
-                                    max_value=100,
-                                ),
-                                "linkedin_url": st.column_config.LinkColumn("Profile"),
-                                "ranking_reason": st.column_config.TextColumn("Why?", width="large"),
-                                "full_name": st.column_config.TextColumn("Name", width="medium"),
-                            },
-                            hide_index=True,
-                            use_container_width=True,
-                            height=400
-                        )
-                        
-                        with st.expander("Show Full Data Table"):
-                            st.dataframe(ranked_df)
+                    with c2:
+                        hist = alt.Chart(ranked_df).mark_bar().encode(
+                            alt.X("ranking_score", bin=alt.Bin(maxbins=20), title="Score Range"),
+                            y='count()',
+                            color=alt.value("#ff4b4b")
+                        ).properties(height=300, title="Score Distribution")
+                        st.altair_chart(hist, use_container_width=True)
 
-                        # DOWNLOADS
-                        st.divider()
-                        st.header("📥 Export")
-                        d1, d2, d3 = st.columns([1,1,2])
-                        
-                        csv = ranked_df.to_csv(index=False).encode('utf-8')
-                        d1.download_button("📄 Download CSV", csv, "ranked_audience.csv", "text/csv", key='dl-csv')
-                        
-                        buffer = io.BytesIO()
+                    # MODERN TABLE
+                    st.subheader("🏆 Leading Candidates")
+                    
+                    final_cols = []
+                    for col in REQUIRED_COLUMNS: 
+                        if col in ranked_df.columns: final_cols.append(col)
+                    for col in RANKING_COLUMNS:
+                        if col in ranked_df.columns: final_cols.append(col)
+                    
+                    ranked_df_display = ranked_df[final_cols]
+                    
+                    st.dataframe(
+                        ranked_df_display,
+                        column_order=("ranking_score", "full_name", "active_experience_title", "company_name_1", "seniority_tier", "linkedin_url", "ranking_reason"),
+                        column_config={
+                            "ranking_score": st.column_config.ProgressColumn(
+                                "Score",
+                                help="Final Ranking Score (0-100)",
+                                format="%.1f",
+                                min_value=0,
+                                max_value=100,
+                            ),
+                            "linkedin_url": st.column_config.LinkColumn("Profile"),
+                            "ranking_reason": st.column_config.TextColumn("Why?", width="large"),
+                            "full_name": st.column_config.TextColumn("Name", width="medium"),
+                        },
+                        hide_index=True,
+                        use_container_width=True,
+                        height=400
+                    )
+                    
+                    with st.expander("Show Full Data Table"):
+                        st.dataframe(ranked_df_display)
 
-                        # Sanitize for Excel (remove illegal chars and truncate)
-                        def clean_data_for_excel(val):
-                            if isinstance(val, str):
-                                # Remove control chars (0-31) except tab(9), newline(10), cr(13)
-                                import re
-                                val = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F]', '', val)
-                                return val[:32000] # Truncate to safe limit
-                            return val
+                    # DOWNLOADS
+                    st.divider()
+                    st.header("📥 Export")
+                    d1, d2, d3 = st.columns([1,1,2])
+                    
+                    csv = ranked_df.to_csv(index=False).encode('utf-8')
+                    d1.download_button("📄 Download CSV", csv, "ranked_audience.csv", "text/csv", key='dl-csv')
+                    
+                    buffer = io.BytesIO()
 
-                        df_export = ranked_df.copy()
-                        for col in df_export.select_dtypes(include=['object']):
-                            df_export[col] = df_export[col].apply(clean_data_for_excel)
+                    # Sanitize for Excel (remove illegal chars and truncate)
+                    def clean_data_for_excel(val):
+                        if isinstance(val, str):
+                            # Remove control chars (0-31) except tab(9), newline(10), cr(13)
+                            import re
+                            val = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F]', '', val)
+                            return val[:32000] # Truncate to safe limit
+                        return val
 
-                        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            df_export.to_excel(writer, index=False, sheet_name='Ranked')
-                        buffer.seek(0)
-                        d2.download_button("📊 Download Excel", buffer, "ranked_audience.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key='dl-xlsx')
+                    df_export = ranked_df.copy()
+                    for col in df_export.select_dtypes(include=['object']):
+                        df_export[col] = df_export[col].apply(clean_data_for_excel)
+
+                    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                        df_export.to_excel(writer, index=False, sheet_name='Ranked')
+                    
+                    excel_data = buffer.getvalue()
+                    
+                    d2.download_button(
+                        label="📊 Download Excel", 
+                        data=excel_data, 
+                        file_name="ranked_audience.xlsx", 
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                        key='dl-xlsx'
+                    )
 
         except Exception as e:
             st.error(f"Something went wrong: {e}")

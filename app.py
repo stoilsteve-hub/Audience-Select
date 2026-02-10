@@ -341,6 +341,31 @@ def render_tool():
                 st.success(f"✅ Successfully loaded {len(df)} candidates!")
 
                 # -------------------------------------------------------------
+                # DEDUPLICATION LOGIC
+                # -------------------------------------------------------------
+                if 'linkedin_url' in df.columns:
+                    duplicate_count = df.duplicated(subset=['linkedin_url'], keep=False).sum()
+                    if duplicate_count > 0:
+                        with st.spinner(f"Found {duplicate_count} potential duplicates. Auto-cleaning..."):
+                            # Calculate "Data Density" (number of non-null fields)
+                            df['data_density'] = df.notnull().sum(axis=1)
+                            
+                            # Sort by URL (to group) and Density (desc)
+                            df = df.sort_values(by=['linkedin_url', 'data_density'], ascending=[True, False])
+                            
+                            before_dedup = len(df)
+                            # Keep the first one (highest density)
+                            df = df.drop_duplicates(subset=['linkedin_url'], keep='first')
+                            
+                            # Cleanup helper col
+                            df = df.drop(columns=['data_density'])
+                            
+                            removed = before_dedup - len(df)
+                            if removed > 0:
+                                st.info(f"🧹 Smart Cleaner: Removed **{removed}** duplicate profiles (kept the ones with most data).")
+
+
+                # -------------------------------------------------------------
                 # COUNTRY FILTER
                 # -------------------------------------------------------------
                 st.sidebar.divider()

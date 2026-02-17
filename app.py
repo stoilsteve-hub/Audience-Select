@@ -340,11 +340,6 @@ def render_tool():
                     uploaded_file.seek(0)
                     df = pd.read_csv(uploaded_file, sep=';', on_bad_lines='skip', engine='python')
                 
-                # -------------------------------------------------------------
-                # SANITIZE DATA (Clean Names)
-                # -------------------------------------------------------------
-                df = sanitize_dataframe(df)
-
             except Exception as e_read:
                 st.warning(f"⚠️ First read attempt failed: {e_read}. Retrying with fallback...")
                 uploaded_file.seek(0)
@@ -356,6 +351,12 @@ def render_tool():
 
             # 2. VALIDATE COLUMNS (SAFE MODE)
             valid, missing, df = validate_columns_safe(df)
+            
+            # -------------------------------------------------------------
+            # SANITIZE DATA (Clean Names) -- Must run AFTER validation/renaming
+            # -------------------------------------------------------------
+            if valid:
+                df = sanitize_dataframe(df)
             
             if not valid:
                 st.warning(f"Debug - Found Columns: {list(df.columns)}")

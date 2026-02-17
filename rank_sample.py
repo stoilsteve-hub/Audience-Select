@@ -227,32 +227,68 @@ def normalize_text(text: Any) -> str:
 def fix_mojibake(text: Any) -> Any:
     """
     Attempts to fix 'Mojibake' (e.g. Ã©, Î£).
-    Tries multiple common mis-encodings (Windows-1252, Latin-1, Double-Encoding).
+    Implements 'Sloppy Windows-1252' strategy to handle mixed content.
     """
     if not isinstance(text, str):
         return text
     
-    # Strategy 1: Windows-1252 (Common for Greek/Cyrillic corruption)
-    try:
-        # If text is actually UTF-8 bytes interpreted as CP1252, we encode back to CP1252 bytes
-        # then decode as UTF-8
-        fixed = text.encode('cp1252').decode('utf-8')
-        return fixed
-    except:
-        pass
+    # "Sloppy" Mapping: Windows-1252 chars -> Latin-1 Byte Equivalents
+    # This allows us to use .encode('latin-1') which is permissive for all bytes,
+    # whereas .encode('cp1252') might crash on undefined chars.
+    cp1252_map = {
+        '\u20ac': '\x80', # €
+        '\u201a': '\x82', # ‚
+        '\u0192': '\x83', # ƒ
+        '\u201e': '\x84', # „
+        '\u2026': '\x85', # …
+        '\u2020': '\x86', # †
+        '\u2021': '\x87', # ‡
+        '\u02c6': '\x88', # ˆ
+        '\u2030': '\x89', # ‰
+        '\u0160': '\x8a', # Š
+        '\u2039': '\x8b', # ‹
+        '\u0152': '\x8c', # Œ
+        '\u017d': '\x8e', # Ž
+        '\u2018': '\x91', # ‘
+        '\u2019': '\x92', # ’
+        '\u201c': '\x93', # “
+        '\u201d': '\x94', # ”
+        '\u2022': '\x95', # •
+        '\u2013': '\x96', # –
+        '\u2014': '\x97', # —
+        '\u02dc': '\x98', # ˜
+        '\u2122': '\x99', # ™
+        '\u0161': '\x9a', # š
+        '\u203a': '\x9b', # ›
+        '\u0153': '\x9c', # œ
+        '\u017e': '\x9e', # ž
+        '\u0178': '\x9f', # Ÿ
+    }
+    
+    # 1. Apply Sloppy Map first (try to reconstruct the bytes)
+    sloppy_text = text
+    for src, dst in cp1252_map.items():
+        sloppy_text = sloppy_text.replace(src, dst)
         
-    # Strategy 2: Latin-1 (ISO-8859-1)
     try:
-        fixed = text.encode('latin-1').decode('utf-8')
-        return fixed
+        return sloppy_text.encode('latin-1').decode('utf-8')
     except:
         pass
 
-    # Strategy 3: "Deep" Repair (Double Encoding)
-    # Sometimes it's UTF-8 -> Latin1 -> UTF-8 -> Latin1
+    # 2. Try Standard encodings (fallback)
     try:
-        fixed = text.encode('latin-1').decode('utf-8').encode('latin-1').decode('utf-8')
-        return fixed
+        return text.encode('cp1252').decode('utf-8')
+    except:
+        pass
+        
+    try:
+        return text.encode('latin-1').decode('utf-8')
+    except:
+        pass
+
+    # 3. Deep Repair (Double)
+    try:
+        return text.encode('latin-1').decode('utf-8').encode('latin-1').decode('utf-8')
     except:
         pass
         

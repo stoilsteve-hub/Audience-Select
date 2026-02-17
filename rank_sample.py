@@ -294,6 +294,20 @@ def sanitize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         df['first_name'] = df['first_name'].apply(clean_name_string)
     if 'full_name' in df.columns:
         df['full_name'] = df['full_name'].apply(clean_name_string)
+
+    # 3. Auto-Fill Empty First Name from Full Name
+    # (If we cleaned "MSOL" from "MSOL" leaving "", grab "Marc" from "Marc Creegan")
+    if 'first_name' in df.columns and 'full_name' in df.columns:
+        # Define logic to fill if empty
+        def fill_missing_first(row):
+            fn = str(row['first_name']).strip()
+            full = str(row['full_name']).strip()
+            if not fn and full:
+                # Take first word of full name
+                return full.split()[0]
+            return row['first_name']
+        
+        df['first_name'] = df.apply(fill_missing_first, axis=1)
         
     return df
 

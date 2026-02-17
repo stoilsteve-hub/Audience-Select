@@ -226,21 +226,33 @@ def normalize_text(text: Any) -> str:
 
 def fix_mojibake(text: Any) -> Any:
     """
-    Attempts to fix 'Mojibake' (e.g. Ã© instead of é).
-    Tries multiple common mis-encodings (Windows-1252, Latin-1).
+    Attempts to fix 'Mojibake' (e.g. Ã©, Î£).
+    Tries multiple common mis-encodings (Windows-1252, Latin-1, Double-Encoding).
     """
     if not isinstance(text, str):
         return text
     
-    # Strategy 1: Windows-1252 (Common for Excel/Western)
+    # Strategy 1: Windows-1252 (Common for Greek/Cyrillic corruption)
     try:
-        return text.encode('cp1252').decode('utf-8')
+        # If text is actually UTF-8 bytes interpreted as CP1252, we encode back to CP1252 bytes
+        # then decode as UTF-8
+        fixed = text.encode('cp1252').decode('utf-8')
+        return fixed
     except:
         pass
         
     # Strategy 2: Latin-1 (ISO-8859-1)
     try:
-        return text.encode('latin-1').decode('utf-8')
+        fixed = text.encode('latin-1').decode('utf-8')
+        return fixed
+    except:
+        pass
+
+    # Strategy 3: "Deep" Repair (Double Encoding)
+    # Sometimes it's UTF-8 -> Latin1 -> UTF-8 -> Latin1
+    try:
+        fixed = text.encode('latin-1').decode('utf-8').encode('latin-1').decode('utf-8')
+        return fixed
     except:
         pass
         
@@ -265,7 +277,10 @@ def clean_name_string(text: Any) -> str:
     prefixes = [
         r'msc', r'm\.sc\.?', r'msol', r'msscm', r'ph\.?d\.?', r'dr\.?', 
         r'eng\.?', r'dipl\.-ing\.?', r'mba', r'prof\.?', 
-        r'cqa', r'pmp', r'cfa', r'cpa', r'pharm\.?d\.?'
+        r'cqa', r'pmp', r'cfa', r'cpa', r'pharm\.?d\.?',
+        r'asq', r'cqe', r'msem',             # New certifications
+        r'[A-Za-z]+-[A-Za-z]+/[A-Za-z]+',    # Catch things like "ASQ-CQE/CQA"
+        r'[A-Za-z]+/[A-Za-z]+'               # Catch things like "CQE/CQA"
     ]
     
     # Join into one big OR group

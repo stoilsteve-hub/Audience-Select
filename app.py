@@ -14,7 +14,8 @@ from rank_sample import (
     SeniorityMode,
     SeniorityModeType,
     REQUIRED_COLUMNS,
-    RANKING_COLUMNS
+    RANKING_COLUMNS,
+    sanitize_dataframe
 )
 
 # Page Conf
@@ -337,7 +338,12 @@ def render_tool():
                 if len(df.columns) == 1 and ';' in str(df.columns[0]):
                     st.toast("Detected semicolon separator. Reloading...", icon="🔄")
                     uploaded_file.seek(0)
-                    df = pd.read_csv(uploaded_file, on_bad_lines='skip', engine='python', sep=';')
+                    df = pd.read_csv(uploaded_file, sep=';', on_bad_lines='skip', engine='python')
+                
+                # -------------------------------------------------------------
+                # SANITIZE DATA (Clean Names)
+                # -------------------------------------------------------------
+                df = sanitize_dataframe(df)
 
             except Exception as e_read:
                 st.warning(f"⚠️ First read attempt failed: {e_read}. Retrying with fallback...")
@@ -581,7 +587,7 @@ def render_tool():
                     st.header("📥 Export")
                     d1, d2, d3 = st.columns([1,1,2])
                     
-                    csv = ranked_df.to_csv(index=False).encode('utf-8')
+                    csv = ranked_df.to_csv(index=False).encode('utf-8-sig')
                     d1.download_button("📄 Download CSV", csv, "ranked_audience.csv", "text/csv", key='dl-csv')
                     
                     buffer = io.BytesIO()

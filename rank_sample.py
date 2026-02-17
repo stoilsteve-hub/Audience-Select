@@ -224,6 +224,27 @@ def normalize_text(text: Any) -> str:
     s = re.sub(r'\s+', ' ', s)
     return s.strip()
 
+def clean_name_string(text: Any) -> str:
+    """Removes academic prefixes from names."""
+    if not isinstance(text, str):
+        return ""
+    # Remove common academic/professional prefixes
+    # Patterns: MSc, M.Sc., MSOL, MSSCM, PhD, Ph.D., Dr., Dr, Eng., Dipl.-Ing.
+    # Case insensitive, at start of string, followed by punctuation or space
+    # Leading space/punctuation is handled by the \s+ or just sticking to start
+    # We use explicit list from user + common ones
+    pattern = r'^\s*(?:msc|m\.sc\.?|msol|msscm|ph\.?d\.?|dr\.?|eng\.?|dipl\.-ing\.?|mba|prof\.?)\s+'
+    cleaned = re.sub(pattern, '', text, flags=re.IGNORECASE).strip()
+    return cleaned
+
+def sanitize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Applies cleaning to name columns."""
+    if 'first_name' in df.columns:
+        df['first_name'] = df['first_name'].apply(clean_name_string)
+    if 'full_name' in df.columns:
+        df['full_name'] = df['full_name'].apply(clean_name_string)
+    return df
+
 # =============================================================================
 # ENGINES
 # =============================================================================

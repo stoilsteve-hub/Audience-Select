@@ -91,6 +91,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
 
 REQUIRED_COLUMNS: List[str] = [
     "id",
+    "first_name",
     "full_name",
     "linkedin_url",
     "active_experience_title",

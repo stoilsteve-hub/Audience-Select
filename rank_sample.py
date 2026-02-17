@@ -280,7 +280,8 @@ def clean_name_string(text: Any) -> str:
         r'cqa', r'pmp', r'cfa', r'cpa', r'pharm\.?d\.?',
         r'asq', r'cqe', r'msem',             # New certifications
         r'[A-Za-z]+-[A-Za-z]+/[A-Za-z]+',    # Catch things like "ASQ-CQE/CQA"
-        r'[A-Za-z]+/[A-Za-z]+'               # Catch things like "CQE/CQA"
+        r'[A-Za-z]+/[A-Za-z]+',              # Catch things like "CQE/CQA"
+        r'[A-Z]{2,}-[A-Z]{2,}'               # Catch things like "ASQ-CQA" (All Caps Hyphenated)
     ]
     
     # Join into one big OR group

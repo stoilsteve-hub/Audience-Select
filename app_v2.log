@@ -1,0 +1,14 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8502
+  Network URL: http://192.168.0.171:8502
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+Missing 16 required columns.
+Missing: id. Candidates: ['id;full_name;linkedin_url;active_experience_title;management_level_1;company_id_1;company_name_1;company_size_range_1;company_categories_and_keywords_1;company_industry_1;company_employees_count_1;department_1;active_experience_description;location_country;connections_count;followers_count']
+Use 'id;full_name;linkedin_url;active_experience_title;management_level_1;company_id_1;company_name_1;company_size_range_1;company_categories_and_keywords_1;company_industry_1;company_employees_count_1;department_1;active_experience_description;location_country;connections_count;followers_count' for 'id'? [y/n]: 

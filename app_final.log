@@ -1,0 +1,822 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.171:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  21%|██        | 419/2002 [00:00<00:00, 4183.64it/s]Keywords:  42%|████▏     | 838/2002 [00:00<00:00, 4179.74it/s]Keywords:  63%|██████▎   | 1256/2002 [00:00<00:00, 4033.40it/s]Keywords:  83%|████████▎ | 1660/2002 [00:00<00:00, 4000.49it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3900.41it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 57108.11it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 12:59:31.011 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 12:59:31.029 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 12:59:31.036 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 317/2002 [00:00<00:00, 3161.59it/s]Keywords:  37%|███▋      | 746/2002 [00:00<00:00, 3824.12it/s]Keywords:  57%|█████▋    | 1140/2002 [00:00<00:00, 3875.56it/s]Keywords:  77%|███████▋  | 1534/2002 [00:00<00:00, 3899.34it/s]Keywords:  96%|█████████▌| 1924/2002 [00:00<00:00, 3888.65it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3759.26it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 58265.04it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 13:04:40.670 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:04:40.693 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:04:40.699 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 311/2002 [00:00<00:00, 3106.40it/s]Keywords:  37%|███▋      | 740/2002 [00:00<00:00, 3799.44it/s]Keywords:  57%|█████▋    | 1136/2002 [00:00<00:00, 3867.31it/s]Keywords:  76%|███████▋  | 1527/2002 [00:00<00:00, 3881.78it/s]Keywords:  96%|█████████▌| 1921/2002 [00:00<00:00, 3900.95it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3756.36it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 58159.94it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 13:06:11.478 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:06:11.505 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:06:11.510 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 316/2002 [00:00<00:00, 3155.17it/s]Keywords:  37%|███▋      | 748/2002 [00:00<00:00, 3834.37it/s]Keywords:  57%|█████▋    | 1151/2002 [00:00<00:00, 3922.76it/s]Keywords:  77%|███████▋  | 1545/2002 [00:00<00:00, 3920.08it/s]Keywords:  97%|█████████▋| 1938/2002 [00:00<00:00, 3915.48it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3786.94it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 58084.54it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 13:09:06.297 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:09:06.322 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:09:06.327 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 319/2002 [00:00<00:00, 3189.84it/s]Keywords:  37%|███▋      | 749/2002 [00:00<00:00, 3839.63it/s]Keywords:  57%|█████▋    | 1145/2002 [00:00<00:00, 3893.45it/s]Keywords:  77%|███████▋  | 1538/2002 [00:00<00:00, 3906.07it/s]Keywords:  96%|█████████▋| 1929/2002 [00:00<00:00, 3904.91it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3768.09it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 58188.39it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 13:11:24.382 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:11:24.401 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:11:24.407 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▌        | 304/2002 [00:00<00:00, 3036.82it/s]Keywords:  36%|███▋      | 729/2002 [00:00<00:00, 3744.75it/s]Keywords:  56%|█████▋    | 1128/2002 [00:00<00:00, 3854.59it/s]Keywords:  76%|███████▌  | 1514/2002 [00:00<00:00, 3853.70it/s]Keywords:  95%|█████████▌| 1909/2002 [00:00<00:00, 3887.84it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3733.31it/s]
+Seniority Raw:   0%|          | 0/1645 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 1645/1645 [00:00<00:00, 58909.77it/s]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:726: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['raw_seniority_score'] = raw_res[0]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:727: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_tier'] = raw_res[1]
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:733: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_component'] = df['raw_seniority_score'].apply(sen_trans_wrapper)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:736: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_mode_type'] = "multi" if sen_pref.is_multi else "single"
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:737: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_modes_selected'] = str([m.mode_type.value for m in sen_pref.modes])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:738: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_combine_method'] = sen_pref.combine_method
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:742: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['seniority_weights_used'] = ""
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:757: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['connections_score_norm'] = safe_log_scale(df['connections_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:758: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['followers_score_norm'] = safe_log_scale(df['followers_count'])
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:770: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['company_size_score'] = df['company_size_range_1'].apply(map_size)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:777: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['final_score'] = (
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:790: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_score'] = df['final_score'].round(2)
+/Users/stoil.steve/AntigravityProjects/Audience Select/rank_sample.py:791: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['ranking_reason'] = df.apply(build_ranking_reason, axis=1)
+2026-02-10 13:11:42.404 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:11:42.428 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:11:42.434 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▍        | 292/2002 [00:00<00:00, 2918.45it/s]Keywords:  36%|███▌      | 723/2002 [00:00<00:00, 3728.69it/s]Keywords:  56%|█████▌    | 1122/2002 [00:00<00:00, 3843.79it/s]Keywords:  75%|███████▌  | 1508/2002 [00:00<00:00, 3846.59it/s]Keywords:  95%|█████████▌| 1908/2002 [00:00<00:00, 3898.19it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3729.53it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 56814.01it/s]
+2026-02-10 13:14:48.164 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:14:48.187 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:14:48.192 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▌        | 306/2002 [00:00<00:00, 3056.97it/s]Keywords:  37%|███▋      | 731/2002 [00:00<00:00, 3753.08it/s]Keywords:  57%|█████▋    | 1132/2002 [00:00<00:00, 3864.38it/s]Keywords:  76%|███████▌  | 1525/2002 [00:00<00:00, 3889.19it/s]Keywords:  96%|█████████▌| 1921/2002 [00:00<00:00, 3912.23it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3754.90it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 56144.67it/s]
+2026-02-10 13:15:02.643 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:15:02.671 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:15:02.676 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 317/2002 [00:00<00:00, 3155.36it/s]Keywords:  38%|███▊      | 751/2002 [00:00<00:00, 3846.31it/s]Keywords:  57%|█████▋    | 1151/2002 [00:00<00:00, 3914.71it/s]Keywords:  77%|███████▋  | 1545/2002 [00:00<00:00, 3918.92it/s]Keywords:  97%|█████████▋| 1938/2002 [00:00<00:00, 3921.65it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3792.53it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 56215.71it/s]
+2026-02-10 13:18:35.001 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:18:35.030 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:18:35.036 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▌        | 307/2002 [00:00<00:00, 3067.88it/s]Keywords:  37%|███▋      | 735/2002 [00:00<00:00, 3778.68it/s]Keywords:  57%|█████▋    | 1140/2002 [00:00<00:00, 3897.77it/s]Keywords:  77%|███████▋  | 1535/2002 [00:00<00:00, 3912.53it/s]Keywords:  96%|█████████▋| 1927/2002 [00:00<00:00, 3893.60it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3748.42it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 57426.36it/s]
+2026-02-10 13:22:16.988 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:22:17.014 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:22:17.018 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 318/2002 [00:00<00:00, 3174.70it/s]Keywords:  38%|███▊      | 752/2002 [00:00<00:00, 3848.71it/s]Keywords:  57%|█████▋    | 1151/2002 [00:00<00:00, 3910.05it/s]Keywords:  77%|███████▋  | 1542/2002 [00:00<00:00, 3904.34it/s]Keywords:  97%|█████████▋| 1933/2002 [00:00<00:00, 3904.03it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3777.82it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 56464.44it/s]
+2026-02-10 13:25:35.261 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:25:35.290 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:25:35.298 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:25:43.606 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:25:43.622 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:25:43.627 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  16%|█▌        | 315/2002 [00:00<00:00, 3147.86it/s]Keywords:  38%|███▊      | 751/2002 [00:00<00:00, 3860.60it/s]Keywords:  58%|█████▊    | 1154/2002 [00:00<00:00, 3935.85it/s]Keywords:  77%|███████▋  | 1548/2002 [00:00<00:00, 3872.54it/s]Keywords:  97%|█████████▋| 1936/2002 [00:00<00:00, 3855.77it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3751.52it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 55726.98it/s]
+2026-02-10 13:28:50.351 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:28:50.379 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:28:50.385 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:29:04.786 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:04.804 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:04.808 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:29:13.669 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:13.685 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:13.689 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:29:24.155 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:24.176 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:29:24.180 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▌        | 303/2002 [00:00<00:00, 3028.36it/s]Keywords:  35%|███▌      | 701/2002 [00:00<00:00, 3582.17it/s]Keywords:  55%|█████▌    | 1108/2002 [00:00<00:00, 3800.56it/s]Keywords:  75%|███████▍  | 1496/2002 [00:00<00:00, 3826.96it/s]Keywords:  95%|█████████▍| 1900/2002 [00:00<00:00, 3901.67it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3709.78it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 56378.38it/s]
+2026-02-10 13:31:01.704 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:01.732 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:01.737 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:31:05.510 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:05.542 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:05.546 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+Ranking explanation columns generated successfully.
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  15%|█▍        | 299/2002 [00:00<00:00, 2987.67it/s]Keywords:  36%|███▋      | 730/2002 [00:00<00:00, 3756.01it/s]Keywords:  57%|█████▋    | 1136/2002 [00:00<00:00, 3894.44it/s]Keywords:  77%|███████▋  | 1535/2002 [00:00<00:00, 3923.95it/s]Keywords:  96%|█████████▋| 1930/2002 [00:00<00:00, 3923.64it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3772.50it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 57026.99it/s]
+2026-02-10 13:31:42.483 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:42.509 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:42.516 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:31:44.616 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:44.635 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:31:44.639 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/multiprocessing/resource_tracker.py:297: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-_p1wk3ff'}
+  warnings.warn(

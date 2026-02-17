@@ -1,0 +1,45 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.171:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+Keywords:   0%|          | 0/2002 [00:00<?, ?it/s]Keywords:  19%|█▉        | 386/2002 [00:00<00:00, 3856.36it/s]Keywords:  40%|███▉      | 797/2002 [00:00<00:00, 4002.74it/s]Keywords:  60%|█████▉    | 1198/2002 [00:00<00:00, 3986.51it/s]Keywords:  80%|███████▉  | 1600/2002 [00:00<00:00, 3999.67it/s]Keywords: 100%|█████████▉| 2000/2002 [00:00<00:00, 3883.09it/s]Keywords: 100%|██████████| 2002/2002 [00:00<00:00, 3852.96it/s]
+Seniority Raw:   0%|          | 0/2002 [00:00<?, ?it/s]Seniority Raw: 100%|██████████| 2002/2002 [00:00<00:00, 58539.72it/s]
+2026-02-10 13:43:50.503 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:43:50.516 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:43:50.520 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-02-10 13:43:52.921 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:43:52.940 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'` or specify an integer width.
+2026-02-10 13:43:52.944 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/multiprocessing/resource_tracker.py:297: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-7glmb412'}
+  warnings.warn(

@@ -209,6 +209,25 @@ def validate_columns_safe(df):
 
     if missing:
         return False, missing, df
+
+    # -------------------------------------------------------------------------
+    # ENFORCE COLUMN ORDER (User Request)
+    # -------------------------------------------------------------------------
+    EXPECTED_ORDER = [
+        "id", "first_name", "full_name", "active_experience_title", "company_name_1", 
+        "linkedin_url", "company_id_1", "location_country", "connections_count", 
+        "management_level_1", "company_size_range_1", "company_categories_and_keywords_1", 
+        "company_industry_1", "company_employees_count_1", "department_1", 
+        "active_experience_description"
+    ]
+    
+    # Only reorder if we have all these columns (or reorder what we have)
+    # We will prioritize this order, and append any extra columns at the end
+    existing_cols = [c for c in EXPECTED_ORDER if c in df.columns]
+    extra_cols = [c for c in df.columns if c not in existing_cols]
+    
+    df = df[existing_cols + extra_cols]
+    
     return True, [], df
 
 # =============================================================================

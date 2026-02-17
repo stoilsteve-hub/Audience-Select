@@ -278,10 +278,22 @@ def clean_name_string(text: Any) -> str:
         r'msc', r'm\.sc\.?', r'msol', r'msscm', r'ph\.?d\.?', r'dr\.?', 
         r'eng\.?', r'dipl\.-ing\.?', r'mba', r'prof\.?', 
         r'cqa', r'pmp', r'cfa', r'cpa', r'pharm\.?d\.?',
-        r'asq', r'cqe', r'msem',             # New certifications
+        r'asq', r'cqe', r'msem',
+        r'p\.?eng\.?',          # P.Eng., P.Eng
+        r'emba',                # EMBA
+        r'masc',                # MASc
+        r'm\.?eng\.?',          # M.Eng., M.Eng
+        r'cssgb',               # CSSGB
+        r'clss(?:\s+gb)?',      # CLSS, CLSS GB
+        r'crm',                 # CRM
+        r'pmi',                 # PMI
+        r'bsie',                # BSIE
+        r'crl',                 # CRL
+        r'bhsc',                # BHSc
+        r'operations\s+executive', # Specific job title garbage
         r'[A-Za-z]+-[A-Za-z]+/[A-Za-z]+',    # Catch things like "ASQ-CQE/CQA"
         r'[A-Za-z]+/[A-Za-z]+',              # Catch things like "CQE/CQA"
-        r'[A-Z]{2,}-[A-Z]{2,}'               # Catch things like "ASQ-CQA" (All Caps Hyphenated)
+        r'[A-Z]{2,}-[A-Z]{2,}'               # Catch things like "ASQ-CQA"
     ]
     
     # Join into one big OR group

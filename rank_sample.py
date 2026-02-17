@@ -106,7 +106,6 @@ REQUIRED_COLUMNS: List[str] = [
     "active_experience_description",
     "location_country",
     "connections_count",
-    "connections_count",
 ]
 
 RANKING_COLUMNS: List[str] = [

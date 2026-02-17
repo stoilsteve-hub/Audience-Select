@@ -307,7 +307,8 @@ def clean_name_string(text: Any) -> str:
     cleaned = re.sub(pattern, '', text, flags=re.IGNORECASE).strip()
     
     # If the result is empty (it was just a title), returns ""
-    return cleaned
+    # Enforce Title Case (e.g. "DAVID" -> "David", "david" -> "David")
+    return cleaned.title()
 
 def sanitize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Applies cleaning to name columns and encoding fix to ALL string columns."""

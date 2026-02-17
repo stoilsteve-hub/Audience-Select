@@ -227,16 +227,24 @@ def normalize_text(text: Any) -> str:
 def fix_mojibake(text: Any) -> Any:
     """
     Attempts to fix 'Mojibake' (e.g. Ã© instead of é).
-    This happens when UTF-8 bytes are decoded as Windows-1252/Latin-1.
+    Tries multiple common mis-encodings (Windows-1252, Latin-1).
     """
     if not isinstance(text, str):
         return text
+    
+    # Strategy 1: Windows-1252 (Common for Excel/Western)
     try:
-        # The 'ftfy' logic: encode back to latin-1, then decode as utf-8
+        return text.encode('cp1252').decode('utf-8')
+    except:
+        pass
+        
+    # Strategy 2: Latin-1 (ISO-8859-1)
+    try:
         return text.encode('latin-1').decode('utf-8')
-    except (UnicodeEncodeError, UnicodeDecodeError):
-        # If it wasn't broken in that specific way, return original
-        return text
+    except:
+        pass
+        
+    return text
 
 def clean_name_string(text: Any) -> str:
     """Removes academic/professional prefixes from names."""

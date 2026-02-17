@@ -106,7 +106,7 @@ REQUIRED_COLUMNS: List[str] = [
     "active_experience_description",
     "location_country",
     "connections_count",
-    "followers_count",
+    "connections_count",
 ]
 
 RANKING_COLUMNS: List[str] = [
@@ -123,9 +123,9 @@ RANKING_COLUMNS: List[str] = [
 ]
 
 KEYWORD_RELEVANCE_COLS: List[str] = [
-    "active_experience_title",
     "active_experience_description",
     "company_categories_and_keywords_1",
+    "active_experience_title",
     "company_industry_1",
     "department_1"
 ]
@@ -172,21 +172,19 @@ class WeightsConfig:
     seniority: float
     keyword: float
     connections: float
-    followers: float
     company_size: float
 
     def normalize(self) -> None:
         total = (self.seniority + self.keyword + self.connections + 
-                 self.followers + self.company_size)
+                 self.company_size)
         if total > 0:
             self.seniority /= total
             self.keyword /= total
             self.connections /= total
-            self.followers /= total
             self.company_size /= total
         else:
             # Fallback to balanced if all zero
-            self.seniority = self.keyword = self.connections = self.followers = self.company_size = 0.2
+            self.seniority = self.keyword = self.connections = self.company_size = 0.25
 
 class SeniorityModeType(Enum):
     PREFER_SENIOR = "prefer_senior"
@@ -347,38 +345,54 @@ class SeniorityRawEngine:
                     score_level = float(v)
                     best_len = len(k)
         
-        # Title matches
-        found_vals = []
-        for pat, v in self.keywords.items():
-            if re.search(pat, title_val):
-                found_vals.append(float(v))
-        if found_vals:
-            score_title = max(found_vals)
-            
-        # Tie-breakers
-        if re.search(r"\b(vp|vice president|chief|president|head of)\b", title_val):
-            score_title = max(score_title, 75.0)
-
-        # Combine
-        if score_level > 0 and score_title > 0:
-            raw = (score_level * 0.6) + (score_title * 0.4)
-        elif score_level > 0:
-            raw = score_level
-        elif score_title > 0:
-            raw = score_title
+    def compute_raw(self, row: pd.Series) -> float:
+        # 1. Primary: Management Level (Standardized)
+        level_str = str(row.get('management_level_1', '')).lower()
+        
+        # specific standard Levels
+        if level_str in ['cxo', 'owner', 'partner', 'vp', 'vice president']:
+            base_score = 90
+        elif level_str in ['director']:
+            base_score = 70
+        elif level_str in ['manager', 'senior', 'lead', 'head']:
+            base_score = 50
+        elif level_str in ['entry', 'junior', 'training', 'unpaid']:
+            base_score = 10
         else:
-            raw = 0.0
-            
-        return min(100.0, max(0.0, raw)), self.get_tier(raw)
+            base_score = 0  # Fallback to title
 
-    @staticmethod
-    def get_tier(score: float) -> str:
-        if score >= 90: return "C-Suite/Owner"
-        if score >= 80: return "VP/Executive"
-        if score >= 70: return "Director/Head"
-        if score >= 60: return "Manager/Lead"
-        if score >= 50: return "Senior"
-        if score >= 30: return "Mid/Associate"
+        # 2. Secondary: Title Booster (Scanning for explicit high-value keywords in title)
+        title_str = str(row.get('active_experience_title', '')).lower()
+        title_score = 0
+        
+        # High Seniority Boosters
+        if any(x in title_str for x in ['chief', 'founder', 'president', 'chairman', 'partner']):
+            title_score = 95
+        elif 'vice president' in title_str or 'vp' in title_str:
+            title_score = 85
+        elif 'director' in title_str or 'head of' in title_str:
+            title_score = 70
+        elif 'manager' in title_str or 'lead' in title_str or 'principal' in title_str:
+            title_score = 50
+        elif 'senior' in title_str:
+            title_score = 40
+        elif 'junior' in title_str or 'intern' in title_str or 'assistant' in title_str:
+            title_score = 10
+            
+        # 3. Final Logic: Trust Level if present, else fall back to Title
+        if base_score > 0:
+            # If we have a level, use it (maybe boost slightly if title confirms)
+            return float(base_score)
+        elif title_score > 0:
+            # Fallback to title if level is missing/unknown
+            return float(title_score)
+        
+        return 0.0
+
+    def _get_tier(self, score: float) -> str:
+        if score >= 80: return "Executive/VP"
+        if score >= 60: return "Director"
+        if score >= 30: return "Manager/Lead"
         if score >= 20: return "Junior/Entry"
         return "Support/Intern/Unknown"
 
@@ -503,15 +517,14 @@ def get_weights_interactive() -> WeightsConfig:
     print("\n--- SCORING WEIGHTS (0-100) ---")
     try:
         s = float(input("Seniority (default 40): ") or 40)
-        k = float(input("Keywords (default 20): ") or 20)
+        k = float(input("Keywords (default 30): ") or 30)
         c = float(input("Connections (default 20): ") or 20)
-        f = float(input("Followers (default 10): ") or 10)
         z = float(input("Company Size (default 10): ") or 10)
     except ValueError:
         print("Invalid input, using defaults.")
-        s, k, c, f, z = 40, 20, 20, 10, 10
+        s, k, c, z = 40, 30, 20, 10
     
-    wc = WeightsConfig(s, k, c, f, z)
+    wc = WeightsConfig(s, k, c, z)
     wc.normalize()
     return wc
 
@@ -640,9 +653,8 @@ def build_ranking_reason(row: pd.Series) -> str:
     
     # 3. Network
     conn_norm = float(row.get('connections_score_norm', 0))
-    foll_norm = float(row.get('followers_score_norm', 0))
     
-    if conn_norm > 70 or foll_norm > 70:
+    if conn_norm > 70:
         parts.append("High network influence")
     elif conn_norm > 40:
         parts.append("Moderate network presence")
@@ -756,7 +768,6 @@ def run_ranking(
         return (log_vals / mx) * 100.0
 
     df['connections_score_norm'] = safe_log_scale(df['connections_count'])
-    df['followers_score_norm'] = safe_log_scale(df['followers_count'])
     
     # Company Size Map
     size_map = {
@@ -779,7 +790,6 @@ def run_ranking(
         (df['seniority_component'] * weights_config.seniority) +
         (df['keyword_score'] * weights_config.keyword) +
         (df['connections_score_norm'] * weights_config.connections) +
-        (df['followers_score_norm'] * weights_config.followers) +
         (df['company_size_score'] * weights_config.company_size)
     )
     

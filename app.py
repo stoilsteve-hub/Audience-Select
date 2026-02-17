@@ -114,7 +114,7 @@ def render_docs():
         with c1:
             st.info("**4. Network (Connections)**\n\nLogarithmic scale (0-100). More connections = higher influence.")
         with c2:
-            st.info("**5. Social Proof (Followers)**\n\nSimilar to connections, but measures audience size.")
+            st.info("")
 
     with tab2:
         st.header("The Seniority Engine")
@@ -248,7 +248,6 @@ def render_tool():
             w_seniority = st.slider("Seniority", 0, 100, 40)
             w_keyword = st.slider("Keywords", 0, 100, 20)
             w_connections = st.slider("Connections", 0, 100, 20)
-            w_followers = st.slider("Followers", 0, 100, 10)
             w_company = st.slider("Company Size", 0, 100, 10)
 
         # 2. Keyword expander
@@ -318,7 +317,7 @@ def render_tool():
             sp = SeniorityPreference(is_multi=True, modes=sp_modes, combine_method=sp_combine, weights=sp_weights)
 
         # Config Objects
-        wc = WeightsConfig(float(w_seniority), float(w_keyword), float(w_connections), float(w_followers), float(w_company))
+        wc = WeightsConfig(float(w_seniority), float(w_keyword), float(w_connections), float(w_company))
         wc.normalize()
         kc = KeywordConfig(filter_bad_rows=filter_bad)
 

@@ -438,6 +438,28 @@ def render_tool():
                             st.stop()
                 else:
                     st.sidebar.warning("Column 'company_name_1' missing. Cannot filter.")
+                
+                # -------------------------------------------------------------
+                # COMPANY DENSITY CONTROL
+                # -------------------------------------------------------------
+                st.sidebar.markdown("---")
+                st.sidebar.header("📊 Density Control")
+                
+                density_enabled = st.sidebar.checkbox("Enable Density Limits", value=False, help="Limit how many people per company are shown.")
+                density_mode = "Top X"
+                d_top_n = 50
+                d_range_min = 50
+                d_range_max = 100
+                
+                if density_enabled:
+                    density_mode = st.sidebar.radio("Strategy", ["Top X", "Range"], horizontal=True)
+                    if density_mode == "Top X":
+                        d_top_n = st.sidebar.number_input("Max People per Company", 1, 500, 50)
+                        st.sidebar.caption(f"Keeps the top {d_top_n} highest ranked people.")
+                    else:
+                        d_range_min = st.sidebar.number_input("Start Rank (Min)", 1, 500, 50)
+                        d_range_max = st.sidebar.number_input("End Rank (Max)", 2, 1000, 100)
+                        st.sidebar.caption(f"Keeps people ranked #{d_range_min} to #{d_range_max} within their company.")
                 # Big Run Button
                 if st.button("🚀 Rank My Audience", type="primary"):
                     
@@ -447,6 +469,31 @@ def render_tool():
                         time.sleep(0.5) 
                         st.write("🧮 Calculating Seniority Scores...")
                         ranked_df = run_ranking(df, wc, sp, kc)
+                        
+                        # -----------------------------------------------------
+                        # APPLY DENSITY FILTER
+                        # -----------------------------------------------------
+                        if density_enabled and 'company_name_1' in ranked_df.columns:
+                            st.write("📉 Applying Density Limits...")
+                            
+                            # Sort by company and then by score (descending)
+                            ranked_df = ranked_df.sort_values(by=['company_name_1', 'ranking_score'], ascending=[True, False])
+                            
+                            if density_mode == "Top X":
+                                # Group by company and take top N
+                                ranked_df = ranked_df.groupby('company_name_1').head(d_top_n)
+                            else:
+                                # Range Mode (e.g. 50 to 100)
+                                # We need a cumulative count per group
+                                ranked_df['temp_rank_in_company'] = ranked_df.groupby('company_name_1').cumcount() + 1
+                                
+                                # Filter range. Note: d_range_min is inclusive start (e.g. 51)
+                                mask = (ranked_df['temp_rank_in_company'] >= d_range_min) & (ranked_df['temp_rank_in_company'] <= d_range_max)
+                                ranked_df = ranked_df[mask].drop(columns=['temp_rank_in_company'])
+                                
+                            # Re-sort by final score globally for the view
+                            ranked_df = ranked_df.sort_values(by="ranking_score", ascending=False)
+
                         st.write("📊 Generating Charts & Insights...")
                         time.sleep(0.3)
                         status.update(label="Ranking Complete!", state="complete", expanded=False)

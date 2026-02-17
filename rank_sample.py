@@ -229,25 +229,28 @@ def normalize_text(text: Any) -> str:
 # =============================================================================
 
 class KeywordEngine:
-    """Phrase-aware Keyword Relevance Engine."""
+    """Phrase-aware Regex Keyword Relevance Engine."""
     
     def __init__(self, good_list: List[str], bad_list: List[str]):
         self.good_patterns: List[Tuple[str, Pattern]] = []
         self.bad_patterns: List[Tuple[str, Pattern]] = []
         
-        # Compile regexes with word boundaries
+        # Helper to compile safe regex
+        def compile_safe(term: str) -> Pattern:
+            # normalize the search term first
+            clean = normalize_text(term)
+            if not clean: return None
+            # \b matches word boundary. 
+            # We escape the term to handle special regex chars like . or + called in the keyword
+            return re.compile(r'\b' + re.escape(clean) + r'\b', re.IGNORECASE)
+
         for w in good_list:
-            norm = normalize_text(w)
-            if norm:
-                # \b matches word boundary
-                pattern = re.compile(r'\b' + re.escape(norm) + r'\b')
-                self.good_patterns.append((w, pattern))
+            pat = compile_safe(w)
+            if pat: self.good_patterns.append((w, pat))
                 
         for w in bad_list:
-            norm = normalize_text(w)
-            if norm:
-                pattern = re.compile(r'\b' + re.escape(norm) + r'\b')
-                self.bad_patterns.append((w, pattern))
+            pat = compile_safe(w)
+            if pat: self.bad_patterns.append((w, pat))
 
     def compute_score(self, row: pd.Series, config: KeywordConfig) -> Tuple[float, int, int, str, str]:
         """
@@ -258,9 +261,13 @@ class KeywordEngine:
         for col in KEYWORD_RELEVANCE_COLS:
             val = row.get(col)
             if pd.notna(val):
-                text_blobs.append(normalize_text(str(val)))
+                # We do NOT normalize the blob here, because we want to preserve 
+                # structure for the regex engine (which handles case insensitivity)
+                # But we do want to replace punctuation with spaces to avoid "word.word" issues
+                t = str(val).replace('.', ' ').replace(',', ' ').replace('/', ' ')
+                text_blobs.append(t)
         
-        full_text = " ".join(text_blobs)
+        full_text = "  ".join(text_blobs) # Double space to prevent accidental merges
         
         # 2. Matching
         found_good = set()

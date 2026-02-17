@@ -224,25 +224,69 @@ def normalize_text(text: Any) -> str:
     s = re.sub(r'\s+', ' ', s)
     return s.strip()
 
+def fix_mojibake(text: Any) -> Any:
+    """
+    Attempts to fix 'Mojibake' (e.g. Ã© instead of é).
+    This happens when UTF-8 bytes are decoded as Windows-1252/Latin-1.
+    """
+    if not isinstance(text, str):
+        return text
+    try:
+        # The 'ftfy' logic: encode back to latin-1, then decode as utf-8
+        return text.encode('latin-1').decode('utf-8')
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        # If it wasn't broken in that specific way, return original
+        return text
+
 def clean_name_string(text: Any) -> str:
-    """Removes academic prefixes from names."""
+    """Removes academic/professional prefixes from names."""
     if not isinstance(text, str):
         return ""
-    # Remove common academic/professional prefixes
-    # Patterns: MSc, M.Sc., MSOL, MSSCM, PhD, Ph.D., Dr., Dr, Eng., Dipl.-Ing.
-    # Case insensitive, at start of string, followed by punctuation or space
-    # Leading space/punctuation is handled by the \s+ or just sticking to start
-    # We use explicit list from user + common ones
-    pattern = r'^\s*(?:msc|m\.sc\.?|msol|msscm|ph\.?d\.?|dr\.?|eng\.?|dipl\.-ing\.?|mba|prof\.?)\s+'
+    
+    # 1. First, fix encoding if needed
+    text = fix_mojibake(text)
+    
+    # 2. Define removal patterns
+    # We include aggressive professional titles now: CQA, MSOL, MBA, PMP, CFA, CPA
+    # Also generic patterns for "ALL CAPS 3-4 LETTERS" if they appear at start? 
+    # Let's be specific first to avoid false positives (like names "IAN", "DAN")
+    
+    # Pattern A: Prefix followed by space/punctuation
+    # Pattern B: The WHOLE string is just the prefix (e.g. "MSOL")
+    
+    prefixes = [
+        r'msc', r'm\.sc\.?', r'msol', r'msscm', r'ph\.?d\.?', r'dr\.?', 
+        r'eng\.?', r'dipl\.-ing\.?', r'mba', r'prof\.?', 
+        r'cqa', r'pmp', r'cfa', r'cpa', r'pharm\.?d\.?'
+    ]
+    
+    # Join into one big OR group
+    combined = "|".join(prefixes)
+    
+    # Regex 1: "Starts with Prefix + Space/Punct"
+    # Regex 2: "Is EXACTLY the Prefix" (maybe with whitespace)
+    
+    pattern = r'^\s*(?:' + combined + r')\s+|^\s*(?:' + combined + r')\s*$'
+    
     cleaned = re.sub(pattern, '', text, flags=re.IGNORECASE).strip()
+    
+    # If the result is empty (it was just a title), returns ""
     return cleaned
 
 def sanitize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """Applies cleaning to name columns."""
+    """Applies cleaning to name columns and encoding fix to ALL string columns."""
+    
+    # 1. Fix Mojibake globally on all string columns
+    # (Because company names, descriptions, etc might also be broken)
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].apply(fix_mojibake)
+        
+    # 2. Clean Names
     if 'first_name' in df.columns:
         df['first_name'] = df['first_name'].apply(clean_name_string)
     if 'full_name' in df.columns:
         df['full_name'] = df['full_name'].apply(clean_name_string)
+        
     return df
 
 # =============================================================================

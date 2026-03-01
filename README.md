@@ -10,7 +10,7 @@ A console-based Python tool to rank and prioritize contacts from CSV exports bas
     -   **Interactive Country Filter**: Dynamically filter candidates by geography before ranking.
     -   **Integrated Documentation**: A built-in "Reference Manual" with strategy diagrams and guides.
 
-### 🌟 Dynamic Seniority Engine (Simplified)
+###  Dynamic Seniority Engine (Simplified)
 
 We use a smart 2-stage process to ensure we find exactly who you are looking for, whether they are Interns, VPs, or anything in between.
 
